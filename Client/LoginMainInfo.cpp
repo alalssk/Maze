@@ -118,3 +118,10 @@ void LoginMainInfo::initLoginArr()
 {
 	LoginArrNum = 0;
 }
+void LoginMainInfo::initID_Pass()
+{
+	inputPassSz = 0;
+	inputIdSz = 0;
+	memset(userID, 0, sizeof(userID));
+	memset(userPass, 0, sizeof(userPass));
+}

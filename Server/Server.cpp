@@ -1,14 +1,21 @@
 // Server.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
 #include"ServerClass.h"
 #include"ServerDB.h"
 
-int _tmain(int argc, _TCHAR* argv[])
+int main()
 {
-	ServerDB sDB;
-	sDB.StartDB();
+	ServerClass sc;
+	sc.ServerClassMain();
+	int input;
+	while (1)
+	{
+		cout << "Á¾·á´Â 5";
+		cin >> input;
+		if (input == 5) break;
+
+	}
 	return 0;
 }
 

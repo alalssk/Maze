@@ -1,6 +1,6 @@
 #pragma once
 #include<iostream>
-#define USER_ID_SIZE 13
+#define USER_ID_SIZE 20//before 13
 #define USER_PASS_SIZE 20
 class LoginMainInfo
 {
@@ -35,7 +35,7 @@ public:
 	int cInputUserPass(char key);
 	int getUserPassSz();
 	char* getUserPass();
-
+	void initID_Pass();
 	void initLoginArr(); //LoginArrNum 맴버 초기화
 
 };

@@ -2,6 +2,7 @@
 #include"grideXY.h"
 #include"LoginMainInfo.h"
 #include"UserInfo.h"
+#include"ConnectToServer.h"
 #include<string>
 /*	LoginTxtSize */
 #define X_LOGIN_TXT_SIZE 58
@@ -16,7 +17,7 @@ public:
 	LoginMain();
 	~LoginMain();
 	int LoginMainStart();
-
+	ConnectToServer toServer;
 private:
 	LoginMainInfo lf;
 	UserInfo user;

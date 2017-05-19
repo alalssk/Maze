@@ -1,10 +1,11 @@
-#include "stdafx.h"
 #include "ServerClass.h"
 int ServerClass::TotalConnectedClientCount = 0;
 bool ServerClass::ExitFlag = false;
 int ServerClass::ChatRoomCount = 0;
 LogClass ServerClass::Chatlog;
 LogClass ServerClass::DBLog;
+ServerDB ServerClass::sDB;
+CRITICAL_SECTION ServerClass::cs;
 ServerClass::ServerClass()
 {
 	shareData = new Shared_DATA;
@@ -23,6 +24,12 @@ bool ServerClass::ServerClassMain()
 {
 	Chatlog.OpenFile("ChatLog.txt");
 	DBLog.OpenFile("DBLog.txt");
+	//start DB
+	if (!sDB.StartDB())
+	{
+		return false;
+	}
+	//start socket
 	shareData->hServSock = GetListenSock(9191, SOMAXCONN);
 	if (shareData->hServSock == INVALID_SOCKET)
 	{
@@ -43,6 +50,7 @@ bool ServerClass::ServerClassMain()
 		cout << "Create ThreadPool for IOCP is Ok ..." << endl;
 		cout << "Start AcceptThread." << endl;
 	}
+	InitializeCriticalSection(&cs);
 	hTheards[0] = (HANDLE)_beginthreadex(NULL, 0, &AcceptThread, (void*)shareData, 0, NULL);//Begin Accept Thread
 	cout << "servermain ok" << endl;
 
@@ -50,15 +58,10 @@ bool ServerClass::ServerClassMain()
 }
 unsigned ServerClass::AcceptThread(PVOID pComPort)
 {
-	//SOCKET ServSock = (SOCKET)pServSock;
 	LPShared_DATA lpComPort = (LPShared_DATA)pComPort;
 	CLIENT_DATA client_data;
-	//LPCLIENT_DATA lpclient_data;
 	int addrLen = sizeof(client_data.clntAdr);
-	CRITICAL_SECTION cs;
-	InitializeCriticalSection(&cs);
-	/*크리티컬색션 객체를 루틴마다 생성해서 해야하나...?
-	한개만 생성해서 해야하나*/
+
 	LPOVER_DATA ioInfo;
 
 	while (!ExitFlag)
@@ -72,14 +75,8 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 			);
 		/*깔끔한 종료처리를 위해서는 비동기 accept를 해야한다 어떻게?*/
 		/*굳이 비동기 처리를 할 필요가있나...? 서버 종료할때 accept스레드를 종료키시면 되지않나..?*/
-
-		EnterCriticalSection(&cs);
 		cout << "Accept 처리중..." << endl;
-
-		lpComPort->Clients.push_back(client_data);//list
-		lpComPort->Clients_Num++;
-		TotalConnectedClientCount++;
-		LeaveCriticalSection(&cs);
+//
 		if (CreateIoCompletionPort(
 			(HANDLE)client_data.hClntSock,
 			lpComPort->hComPort,
@@ -159,12 +156,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 	DWORD bytesTrans;
 	LPOVER_DATA ioInfo;
 	DWORD flags = 0;
-	CRITICAL_SECTION cs;
 	char SendMsg[1024];
 	char clntName[MAX_NAME_SIZE];
 	memset(SendMsg, 0, (sizeof(SendMsg)));
 	memset(clntName, 0, (sizeof(clntName)));
-	InitializeCriticalSection(&cs);
+	CLIENT_DATA client_data;
 
 	list<CLIENT_DATA>::iterator iter;
 	list<ChatRoom>::iterator iter_ChatRoom;
@@ -179,230 +175,57 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			);//errorㅊ리 꼭 해줘야함 
 		if (bGQCS)//gqcs 성공
 		{
-			if (ioInfo->Mode == READ)
+			
+			if (ioInfo->Mode == FIRST_READ)//ID_PASS 입력된걸 DB처리
 			{
-				ChatRoom ChatRoom;
-				char cRoomNumberOrName[MAX_CHATROOM_SIZE] = "";
-				char CreateCode[10] = "";
-				char JoinCode[10] = "";
-				char sendMsg_Room[1024] = "";
-				char *tmp_request;
-				int itmp_RoomNum = 0;
-				char ChatLogMsg_tmp[1024] = "";
-
-				if (bytesTrans == 0)    // EOF 전송 시
+				char first_send[5] = "";
+				int DBcode;
+				cout << ioInfo->buffer << endl;
+				if (sDB.Check_Password(ioInfo->buffer))
 				{
-					CloseClientSock(sock, ioInfo, shareData);
-					continue;
+					DBcode = 0;//접속ㅇㅋ
+					EnterCriticalSection(&cs);
+
+					client_data.hClntSock = sock;
+					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
+					
+					shareData->Clients.push_back(client_data);//list
+					shareData->Clients_Num++;
+					cout << '[' << client_data.name << ']' << client_data.hClntSock << "의 이름 입력 완료" << endl;
+					TotalConnectedClientCount++;
+					LeaveCriticalSection(&cs);
 				}
-				/*ID 탐색*/
-				iter = shareData->Clients.begin();
-				while (iter != shareData->Clients.end())
-				{
-					if (iter->hClntSock == sock)
-					{
-						strcpy(clntName, iter->name);
-						sprintf(SendMsg, "[%s] %s", clntName, ioInfo->buffer);
-						break;
-					}
-					else
-					{
-						iter++;
-					}
+				else {
+					DBcode = 2;//비번다름;
+					cout << "비번달라서 클라 종료" << endl;
+					closesocket(sock);
 				}
-				if (ioInfo->buffer[0] == '!')//특수옵션 방만들기, 방 입장하기, 방 나가기(방에 아무도 없으면 자동으로 방제거)
-				{
-					/*
-					*완전 수정해야함 클라서 명령어 전송할때 !create room 이거 고대로 전송하지말고
-					*!create room alalssk이면  !0 alalssk 만 딱 전송하도록 변경
-					*
-					*/
-					//
+				//
 
-					//					cout << "요청: " << ioInfo->buffer;
-					//sprintf(tmp, "%s %s\n", strtok(ioInfo->buffer," "), strtok(NULL," "));
+				//
 
-					if (ioInfo->buffer[1] == '0')//create chat room
-					{
-						tmp_request = strtok(ioInfo->buffer, " ");
-						tmp_request = strtok(NULL, " ");
-						strcpy(cRoomNumberOrName, tmp_request);
-						cRoomNumberOrName[strlen(cRoomNumberOrName) - 1] = '\0';//Name
-
-
-						EnterCriticalSection(&cs);
-						ChatRoom.ChatRoomNum = ++ChatRoomCount;				//방번호
-						strcpy(ChatRoom.ClientsID[0], clntName);			//입장중인ID
-						strcpy(ChatRoom.chatRoomName, cRoomNumberOrName);	//채팅방이름
-						ChatRoom.UserCount = 1;								//입장중인 유저 수
-						shareData->ChatRoomList.push_back(ChatRoom);
-						LeaveCriticalSection(&cs);
-						//cout << clntName << " 님이 " << cRoomNumberOrName << "방을 만들었음." << endl;
-						//방 생성을 요청한 클라이언트한테만 생성완료 코드를 send함
-
-						sprintf(CreateCode, "!0 %d", ChatRoom.ChatRoomNum);
-						send(sock, CreateCode, strlen(CreateCode), 0);
-						sprintf(sendMsg_Room, "%s님이 %s[%d]방을 만들었음.", clntName, ChatRoom.chatRoomName, ChatRoom.ChatRoomNum);
-
-
-					}
-					else if (ioInfo->buffer[1] == '1')//join chat room
-					{
-						int input_roomNum = 0;
-						bool RoomFindFlag = false;
-						tmp_request = strtok(ioInfo->buffer, " ");
-						tmp_request = strtok(NULL, " ");
-						strcpy(cRoomNumberOrName, tmp_request);
-						//cRoomNumberOrName[strlen(cRoomNumberOrName) - 1] = '\0';//Number
-						input_roomNum = atoi(cRoomNumberOrName);
-
-						iter_ChatRoom = shareData->ChatRoomList.begin();
-						while (iter_ChatRoom != shareData->ChatRoomList.end())//방 찾기
-						{
-							if (iter_ChatRoom->ChatRoomNum == input_roomNum)
-							{
-								RoomFindFlag = true;
-								break;
-							}
-							else
-							{
-								iter_ChatRoom++;
-							}
-						}
-						if (RoomFindFlag)//input 방 번호를 찾았으면
-						{
-							if (iter_ChatRoom->UserCount < 3)
-							{//방이 풀방이 아닐경우
-								EnterCriticalSection(&cs);
-								strcpy(iter_ChatRoom->ClientsID[iter_ChatRoom->UserCount++], clntName);
-								LeaveCriticalSection(&cs);
-								//방 입장을 요청한 클라이언트 한테만 방입장 완료 코드를 send함
-								send(sock, "1", strlen("1"), 0);//TRUE
-								sprintf(JoinCode, "!1 %d", input_roomNum);
-								send(sock, JoinCode, strlen(JoinCode), 0);
-								sprintf(sendMsg_Room, "%s님이 %s번 방에 입장함.\n", clntName, input_roomNum);
-
-							}
-							else
-							{//방이 풀방일경우(3명)
-								cout << clntName << "가 [" << input_roomNum << "] 번 방에 입장 실패(풀방)" << endl;
-								send(sock, "0", strlen("0"), 0);//FALSE
-								//sprintf(JoinCode, "!1 %d 은 풀방입니다.", iter_ChatRoom->ChatRoomNum);
-								//send(sock, JoinCode, strlen(JoinCode), 0);
-								//풀방 처리는 나중에
-
-							}
-
-						}
-						else//input 방을 못 찾은 경우
-						{
-							cout << clntName << "가 [" << input_roomNum << "] 번 방을 찾지 못했습니다." << endl;
-							send(sock, "0", strlen("0"), 0);
-							//sprintf(JoinCode, "!1 %d 방을 찾지 못함", input_roomNum);
-							//send(sock, JoinCode, strlen(JoinCode), 0);
-							//굳이 방을 찾지못한 메시지를 보내줄 필요가있는가 그냥 F만 한번 보내면 되는걸
-						}
-
-						//방을 만들거나 들어갈때 딱 한번 방번호를 전송
-						//!join 10
-						//방에 있는 사람들한테도 메세지를 전송해줘야함 send를 두번하면 낭비 쩔어서 안댐
-						//!join [방번호] [출력 내용]
-						//ex) !join 10 ID님이 방에 입장 하셨습니다.
-					}//end join
-					else if (ioInfo->buffer[1] == '2')//exit chat room
-					{
-						cout << "방 나가기" << endl;
-						//send : "!방번호(옵션부분) ID 가 방을 나갔습니다."
-					}
-					else
-					{
-						cout << "명령어가 없습니다." << endl;
-					}
-					//처리 다 하고 WSARecv()추가 해줘야함 안해주면 다음 메시지 못받음
-					//mode 는 각 if에 걸맞는 mode로(ex: CREATE_ROOM, EXIT_ROOM ....etc)
-					//cout << tmp << "size: " << strlen(tmp) << endl;
-					SendMsgFunc(sendMsg_Room, shareData, strlen(sendMsg_Room) + 2);
-					cout << sendMsg_Room << endl;
-					delete ioInfo;
-				}
-				else if (ioInfo->buffer[0] == '/')//채팅메세지 전송 옵션
-				{
-					if (ioInfo->buffer[1] == 'w')//귓말
-					{
-						cout << "귓말 구현부" << endl;
-						delete ioInfo;
-					}
-					else//chat room 0~999
-					{
-						tmp_request = strtok(ioInfo->buffer, " ");
-						itmp_RoomNum = atoi(tmp_request + 1);
-						tmp_request = strtok(NULL, " ");
-
-						sprintf(SendMsg, "/%d [%s]%s", itmp_RoomNum, clntName, tmp_request);
-						/*blocking Send*/
-						SendMsgFunc(SendMsg, shareData, MAX_NAME_SIZE + bytesTrans + 2);//대괄호 특문 두개+
-
-
-						tmp_request[strlen(tmp_request) - 1] = '\0';//클라에 보낼떄는 개행문자가 들어가게, 서버에 출력할때는 안들어가게
-						EnterCriticalSection(&cs);
-						//cout << "message received from [" << clntName << ']' << tmp_request << "(" << itmp_RoomNum << ")" << endl;
-						sprintf(ChatLogMsg_tmp, "message received from [%s]%s(%d)", clntName, tmp_request, itmp_RoomNum);
-						//cout << ChatLogMsg_tmp << endl;
-						Chatlog.In_ChatLog_txt(ChatLogMsg_tmp);
-						LeaveCriticalSection(&cs);
-						delete ioInfo;
-						/*WSARecv 함수*/
-					}
-
-				}
-				else
-				{
-					cout << "Recv Error: " << ioInfo->buffer << endl;
-					delete ioInfo;
-
-				}
-			}
-			else if (ioInfo->Mode == FIRST_READ)//첫 name 입력
-			{
-				char first_send[20 + 20] = "";
-
-				/**/
-
-				iter = shareData->Clients.begin();
-				while (iter != shareData->Clients.end())
-				{
-					if (iter->hClntSock == sock)
-					{
-						EnterCriticalSection(&cs);
-						strcpy(iter->name, ioInfo->buffer);
-						cout << '[' << iter->name << ']' << sock << "의 이름 입력 완료" << endl;
-						LeaveCriticalSection(&cs);
-						break;
-					}
-					else
-					{
-						iter++;
-					}
-				}
-
-				/**/
 				//shareData->Clients.push_back()
-				sprintf(first_send, "%s 님 접속\n", ioInfo->buffer);
-				cout << first_send;
+				sprintf(first_send, "@%d", DBcode);
+				
 
-				SendMsgFunc(first_send, shareData, bytesTrans + 17);
+				SendMsgFunc(first_send, shareData, 5);
 				delete ioInfo;
 				//여기다 ioInfo->Mode = ROOM_READ 로 설정하고 룸 정보만 recv send 함
 				//특정 코드(방생성 방입장 종료코드 등)을 받으면 그에대한 모드 처리
 				/*WSARecv*/
+				ioInfo = new OVER_DATA;
+				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+				ioInfo->wsaBuf.len = BUF_SIZE;
+				ioInfo->wsaBuf.buf = ioInfo->buffer;//버퍼의 포인터를 담음....?여기서 wsaBuf의 필요성에대해 알아보도록 하자
+				ioInfo->Mode = READ;
+				WSARecv(sock, &(ioInfo->wsaBuf),
+					1, NULL, &flags, &(ioInfo->overlapped), NULL);
 			}
-			ioInfo = new OVER_DATA;
-			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-			ioInfo->wsaBuf.len = BUF_SIZE;
-			ioInfo->wsaBuf.buf = ioInfo->buffer;//버퍼의 포인터를 담음....?여기서 wsaBuf의 필요성에대해 알아보도록 하자
-			ioInfo->Mode = READ;
-			WSARecv(sock, &(ioInfo->wsaBuf),
-				1, NULL, &flags, &(ioInfo->overlapped), NULL);
+			else if (ioInfo->Mode == ROOM_READ)
+			{
+				cout << "room READ 부분" << endl;
+			}
+
 		}
 		else
 		{
@@ -501,12 +324,12 @@ void ServerClass::ExitIOCP()
 void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA lpComp)
 {
 	//여기서 의문점 - 크리티컬색션 객체는 여러개 생성해도 연동?이 되는지
-	CRITICAL_SECTION cs;
+
 	char CloseName[MAX_NAME_SIZE];
 	char tmp[MAX_NAME_SIZE + 128];
 	memset(tmp, 0, sizeof(tmp));
 	memset(CloseName, 0, sizeof(CloseName));
-	InitializeCriticalSection(&cs);
+
 	list<CLIENT_DATA>::iterator iter;
 	iter = lpComp->Clients.begin();
 	while (iter != lpComp->Clients.end())

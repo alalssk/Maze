@@ -17,6 +17,10 @@ LoginMain::~LoginMain()
 }
 int LoginMain::LoginMainStart()
 {
+	if (!toServer.setupSock())
+	{
+		return 0;
+	}
 	ClearXY();
 	ReadLoginTitleTxt();
 	PrintLoginTitleTxt();
@@ -31,28 +35,9 @@ int LoginMain::LoginMainStart()
 		//cout << "접속 종료" << endl;
 		//clientExit();
 		return 0;
-		//case 1://logout
-		//	ClearXY();
-		//	lf.initLoginArr();
-		//	//user.initUserInfo();
-		//	//return 1;
-		//	break;
+
 	case 1://connect
-		//while (1)
-		//{
-		//	switch (wr.WaitingRoomMain())//exit(0), logout(1), 다시 대기실로(2)
-		//	{
-		//	case 0: clientExit(); return 0;
-		//	case 1:
-		//		allClear();
-		//		lf.initLoginArr();
-		//		user.initUserInfo();
-		//		return 1;
-		//	case 2:
-		//		break;
-		//	}
-		//}
-		//break;
+		cout << "접속완료" << endl;
 		return 1;
 	}
 }
@@ -169,7 +154,6 @@ const int LoginMain::InputKey()
 		key = getKeyDirectionCheck();
 		tmp = KeyBoardCheck(key);//return -> 종료하기(0) 루프계속(5)  접속 성공(1)
 		if (tmp != 5)break; //대기방에서 로그인화면으로 돌아가기 만들자
-
 	}
 	return tmp;
 }
@@ -213,26 +197,49 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 	{
 		if (key == SPACE || key == ENTER)
 		{
-			if (!(user.setID(lf.getUserId()) && user.setPassword(lf.getUserPass())))
+			char send_id_pass[20 + 20] = "";
+			sprintf(send_id_pass, "%s_%s", lf.getUserId(), lf.getUserPass());
+			if (toServer.StartConnect(send_id_pass))
 			{
+				return 1;
+			}
+			else
+			{
+					gotoxy(35, 29);
+					cout << send_id_pass << "::";
+					Sleep(1000);
 				PrintConnectErrorMsg(0);
 				return 5;
 			}
 
-			////Sleep(3000);
-			//if (toServer.StartConnect(user.conv_ID_Password()))//접속 시도
+			//if (!(user.setID(lf.getUserId()) && user.setPassword(lf.getUserPass())))
 			//{
-			//	return 2;
+			//	PrintConnectErrorMsg(0);
+			//	lf.initID_Pass();//비밀번호만 초기화 되게 만들자 
+			//	return 5;
 			//}
 			//else
 			//{
-			//	cout << "접속 실패 ~~~를 확인하세요" << endl;
-			//	return 1;
+			//	gotoxy(35, 29);
+			//	cout << user.conv_ID_Password()<<"::";
+			//	Sleep(1000);
+			//	//if (toServer.StartConnect(user.conv_ID_Password()))
+			//	//{
+			//	//	return 1;
+			//	//}
+			//	//else
+			//	//{
+			//	//	PrintConnectErrorMsg(0);
+			//	//	return 5;
+			//	//}
+			//		PrintConnectErrorMsg(0);
+			//		lf.initID_Pass();//비밀번호만 초기화 되게 만들자 
+			//		return 5;
 			//}
 
 
-			//PrintConnectErrorMsg(1);//0이면 아이디 비번문제 1이면 서버접속문제
-			//return 1;
+
+
 		}
 
 
@@ -241,6 +248,8 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 	{
 		if (key == SPACE || key == ENTER) return 0;
 	}
+
+
 	return 5;
 }
 

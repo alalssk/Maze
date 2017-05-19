@@ -6,11 +6,13 @@
 #include<list>
 #include<string>
 #include "LogClass.h"//log
+#include"ServerDB.h"
 using namespace std;
 #define BUF_SIZE 100
 #define READ	3
 #define FIRST_READ 4
-#define	WRITE	5
+#define ROOM_READ 5
+#define	WRITE	6
 
 #define  MAX_CLN_NUM 300
 #define MAX_THR_NUM 3
@@ -57,7 +59,7 @@ class ServerClass
 	} Shared_DATA, *LPShared_DATA;
 	WSADATA	wsaData;
 
-	//	CRITICAL_SECTION cs;
+
 	LPShared_DATA shareData;
 	SYSTEM_INFO sysInfo;
 	HANDLE hTheards[MAX_THR_NUM];
@@ -72,12 +74,14 @@ class ServerClass
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
 	static unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);
+	static CRITICAL_SECTION cs;
 	//	void ErrorHandling(const char *message);
 
 
 public:
 	static LogClass Chatlog;
 	static LogClass DBLog;
+	static ServerDB sDB;
 	ServerClass();
 	~ServerClass();
 	bool ServerClassMain();
