@@ -76,7 +76,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 		/*깔끔한 종료처리를 위해서는 비동기 accept를 해야한다 어떻게?*/
 		/*굳이 비동기 처리를 할 필요가있나...? 서버 종료할때 accept스레드를 종료키시면 되지않나..?*/
 		cout << "Accept 처리중..." << endl;
-//
+		//
 		if (CreateIoCompletionPort(
 			(HANDLE)client_data.hClntSock,
 			lpComPort->hComPort,
@@ -175,7 +175,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			);//errorㅊ리 꼭 해줘야함 
 		if (bGQCS)//gqcs 성공
 		{
-			
+
 			if (ioInfo->Mode == FIRST_READ)//ID_PASS 입력된걸 DB처리
 			{
 				char first_send[5] = "";
@@ -188,7 +188,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
-					
+
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "의 이름 입력 완료" << endl;
@@ -197,8 +197,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				}
 				else {
 					DBcode = 2;//비번다름;
-					cout << "비번달라서 클라 종료" << endl;
-					closesocket(sock);
+					cout << '[' << sock << "]비번다름" << endl;
+
 				}
 				//
 
@@ -206,9 +206,10 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 				//shareData->Clients.push_back()
 				sprintf(first_send, "@%d", DBcode);
-				
-
-				SendMsgFunc(first_send, shareData, 5);
+				//SendMsgFunc(first_send, shareData, 5);
+				//당연히 해당 소캣에만 보내야되느데 전체send(SnedMsgFunc)를 해가지고 ㅅㅂ
+				send(sock, first_send, 5, 0);
+				cout << first_send << "전송완료" << endl;
 				delete ioInfo;
 				//여기다 ioInfo->Mode = ROOM_READ 로 설정하고 룸 정보만 recv send 함
 				//특정 코드(방생성 방입장 종료코드 등)을 받으면 그에대한 모드 처리
@@ -217,7 +218,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 				ioInfo->wsaBuf.len = BUF_SIZE;
 				ioInfo->wsaBuf.buf = ioInfo->buffer;//버퍼의 포인터를 담음....?여기서 wsaBuf의 필요성에대해 알아보도록 하자
-				ioInfo->Mode = READ;
+				if (DBcode == 2)ioInfo->Mode = FIRST_READ; //비번다르면 다시 읽어야하니까
+				else ioInfo->Mode = READ;
 				WSARecv(sock, &(ioInfo->wsaBuf),
 					1, NULL, &flags, &(ioInfo->overlapped), NULL);
 			}

@@ -19,6 +19,7 @@ private:
 public:
 	ConnectToServer();
 	~ConnectToServer();
-	bool setupSock();
-	bool StartConnect(char*);
+	bool setupSock();//WSAStartup ~ connect 까지 나중에 서버IP 선택or입력 할수있게 변경
+	bool StartConnect(char* ID_PASS);//ID 비번을 서버에 전송&처리 해주는 함수
+	const SOCKET getSocket();
 };

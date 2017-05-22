@@ -26,7 +26,7 @@ bool ServerDB::StartDB()
 	return true;
 
 }
-bool ServerDB::Check_Password(char* id_pass)
+bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 {
 	string id, pass;
 	char tmp_id_pass[20 + 20] = "";

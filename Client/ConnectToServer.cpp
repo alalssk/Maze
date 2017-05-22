@@ -24,7 +24,12 @@ bool ConnectToServer::setupSock()
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	servAddr.sin_port = htons(9191);
-
+	if (connect(Sock, (SOCKADDR*)&servAddr, sizeof(servAddr)) == SOCKET_ERROR)
+	{
+		fputs("connect() error!", stderr);
+		fputc('\n', stderr);
+		return false;
+	}
 	return true;
 }
 
@@ -32,13 +37,8 @@ bool ConnectToServer::StartConnect(char* ID_Pass)
 {
 	int strLen;
 	char code[CONNECT_CODE_SIZE] = "";
-	if (connect(Sock, (SOCKADDR*)&servAddr, sizeof(servAddr)) == SOCKET_ERROR)
-	{
-		fputs("connect() error!", stderr);
-		fputc('\n', stderr);
-		return false;
-	}
-	/*이 부분에서 ID_Pass를 서버로 한 번 정송하여 DB 처리 후 Connect완료*/
+
+	/*이 부분에서 ID_Pass를 서버로 한 번 정송하여 DB 처리 후 접속 완료 처리*/
 	send(Sock, ID_Pass, strlen(ID_Pass)+1, 0);
 	//접속완료(@0), 접속실패{아이디중복(@1), 비밀번호다름(@2) 등}
 	//DB관련 패킷은 @[code] (@0, @1, @2)
@@ -57,7 +57,7 @@ bool ConnectToServer::StartConnect(char* ID_Pass)
 			case '0':
 				return true;
 				break;
-			case '1':
+			case '1'://일단 안씀 
 				return false;
 				break;
 			case '2':
@@ -68,4 +68,8 @@ bool ConnectToServer::StartConnect(char* ID_Pass)
 	}
 	
 	return false;//
+}
+const SOCKET ConnectToServer::getSocket()
+{
+	return this->Sock;
 }

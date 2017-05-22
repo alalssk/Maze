@@ -146,6 +146,8 @@
   <ItemGroup>
     <ClInclude Include="ConnectToServer.h" />
     <ClInclude Include="grideXY.h" />
+    <ClInclude Include="Lobby.h" />
+    <ClInclude Include="LobbyInfo.h" />
     <ClInclude Include="LoginMain.h" />
     <ClInclude Include="LoginMainInfo.h" />
     <ClInclude Include="UserInfo.h" />
@@ -154,6 +156,8 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ConnectToServer.cpp" />
     <ClCompile Include="grideXY.cpp" />
+    <ClCompile Include="Lobby.cpp" />
+    <ClCompile Include="LobbyInfo.cpp" />
     <ClCompile Include="LoginMain.cpp" />
     <ClCompile Include="LoginMainInfo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

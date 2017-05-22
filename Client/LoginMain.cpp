@@ -205,9 +205,9 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 			}
 			else
 			{
-					gotoxy(35, 29);
-					cout << send_id_pass << "::";
-					Sleep(1000);
+				gotoxy(35, 29);
+				cout << send_id_pass << "::";
+				Sleep(1000);
 				PrintConnectErrorMsg(0);
 				return 5;
 			}
