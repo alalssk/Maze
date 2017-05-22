@@ -9,12 +9,14 @@
 #include"ServerDB.h"
 using namespace std;
 #define BUF_SIZE 100
-#define READ	3
-#define FIRST_READ 4
-#define ROOM_READ 5
-#define	WRITE	6
+/*IOCP MODE*/
+#define READ		3
+#define FIRST_READ	4
+#define CREATE_ROOM 5
+#define ROOM_READ	6
+#define	WRITE		7
 
-#define  MAX_CLN_NUM 300
+#define MAX_CLN_NUM 300
 #define MAX_THR_NUM 3
 #define MAX_NAME_SIZE 20
 #define MAX_CHATROOM_SIZE 40

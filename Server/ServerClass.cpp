@@ -205,8 +205,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					LeaveCriticalSection(&cs);
 				}
 				else {
-					DBcode = 2;//비번다름;
-					cout << '[' << sock << "]비번다름" << endl;
+					DBcode = 2;//비번다름코드;
+					cout << '[' << client_data.name << "]비번틀림" << endl;
 
 				}
 				//
@@ -218,7 +218,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				//SendMsgFunc(first_send, shareData, 5);
 				//당연히 해당 소캣에만 보내야되느데 전체send(SnedMsgFunc)를 해가지고 ㅅㅂ
 				send(sock, first_send, 5, 0);
-				cout << first_send << "전송완료" << endl;
 				delete ioInfo;
 				//여기다 ioInfo->Mode = ROOM_READ 로 설정하고 룸 정보만 recv send 함
 				//특정 코드(방생성 방입장 종료코드 등)을 받으면 그에대한 모드 처리
