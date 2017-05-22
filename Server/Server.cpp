@@ -9,11 +9,21 @@ int main()
 	ServerClass sc;
 	sc.ServerClassMain();
 	int input;
-	while (1)
+	bool exitFlag = false;
+	while (!exitFlag)
 	{
 		cout << "Á¾·á´Â 5";
 		cin >> input;
-		if (input == 5) break;
+		switch (input)
+		{
+		case 1:
+			sc.printConnectClientNum();
+			break;
+		case 5:
+			exitFlag = true;
+			break;
+		}
+		
 
 	}
 	return 0;

@@ -85,6 +85,7 @@ public:
 	ServerClass();
 	~ServerClass();
 	bool ServerClassMain();
+	void printConnectClientNum();
 	void ExitIOCP();
 };
 

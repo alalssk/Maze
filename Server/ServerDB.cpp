@@ -28,6 +28,9 @@ bool ServerDB::StartDB()
 }
 bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 {
+	MYSQL_RES * sql_result;
+	MYSQL_ROW sql_row;
+	int query_stat;
 	string id, pass;
 	char tmp_id_pass[20 + 20] = "";
 	strcpy(tmp_id_pass, id_pass);
@@ -39,7 +42,6 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 
 	char query[1024] = "";
 	sprintf(query, "select user_id, user_pass from user_tbl where user_id = '%s';",id.c_str());
-	cout << query << endl;
 	query_stat = mysql_query(connection, query);
 	if (query_stat != 0)
 	{
@@ -63,6 +65,7 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 			if (strcmp(sql_row[1], pass.c_str()) == 0)
 			{
 				//cout << "비번 같음" << endl;
+				OneIncreass_visit_count(id);
 				return true;
 			}
 			else {
@@ -76,7 +79,8 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 }
 bool ServerDB::Insert_User(string id, string pass)
 {
-	string instrument = "INSERT INTO user_tbl (user_id, user_pass, user_WinCount, user_PlayCount) VALUES ('" + id + "', '" + pass +  "', 0, 0 )";
+	int query_stat;
+	string instrument = "INSERT INTO user_tbl (user_id, user_pass) VALUES ('" + id + "', '" + pass +  "')";
 	//string instrument = "INSERT INTO user (id, password, connect_IP) VALUES ( '" + id + "', '" + password + "', '" + ip + "')";
 	//insert 예문: insert into user_tbl(user_id, user_pass, user_WinCount, user_PlayCount) values('[ID입력]', '[PASS입력]', 0, 0); 
 	//varchar 형은 입력할때 ''나 "" 해줘야함
@@ -89,5 +93,18 @@ bool ServerDB::Insert_User(string id, string pass)
 		return false;
 	}
 	cout << "OK insert" << endl;
+	return true;
+}
+bool ServerDB::OneIncreass_visit_count(string id)
+{
+	int query_stat;
+	char query[1024] = "";
+	sprintf(query, "update user_tbl set visit_count = visit_count+1 where user_id = '%s';", id.c_str());
+	query_stat = mysql_query(connection, query);
+	if (query_stat != 0)
+	{
+		fprintf(stderr, "[OneIncreass_visit_count]Mysql query error : %s\n", mysql_error(&conn));
+		return false;
+	}
 	return true;
 }

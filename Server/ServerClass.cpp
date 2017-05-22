@@ -20,6 +20,10 @@ ServerClass::~ServerClass()
 	delete shareData;
 	cout << "Delete CompletionPort" << endl;
 }
+void ServerClass::printConnectClientNum()
+{
+	cout << TotalConnectedClientCount << "명 접속중" << endl;
+}
 bool ServerClass::ServerClassMain()
 {
 	Chatlog.OpenFile("ChatLog.txt");
@@ -60,6 +64,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 {
 	LPShared_DATA lpComPort = (LPShared_DATA)pComPort;
 	CLIENT_DATA client_data;
+
 	int addrLen = sizeof(client_data.clntAdr);
 
 	LPOVER_DATA ioInfo;
@@ -80,9 +85,9 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 		if (CreateIoCompletionPort(
 			(HANDLE)client_data.hClntSock,
 			lpComPort->hComPort,
-			(DWORD)client_data.hClntSock,
+			(DWORD)client_data.hClntSock,//컴플리션키로 
 			0
-			) == NULL)//컴플리션키로 클라소캣을 넣었음
+			) == NULL)
 		{
 			cout << "Client socket connect to IOCP handle error : " << GetLastError() << endl;
 			continue;
@@ -94,7 +99,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
 		ioInfo->Mode = FIRST_READ;//첫 접속 처리를 위한 모드(ID password 처리)
 		/*IO_PENDING 에러처리*/
-		cout << "client sock: " << client_data.hClntSock << endl;
+		cout << "client sock: " << client_data.hClntSock<<'-' << inet_ntoa(client_data.clntAdr.sin_addr) << endl;
 		if (WSARecv(
 			client_data.hClntSock,
 			&(ioInfo->wsaBuf),
@@ -152,7 +157,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 {
 	//HANDLE hComPort = (HANDLE)pComPort;
 	LPShared_DATA shareData = (LPShared_DATA)CompletionPortIO;
+
+	/*컴플리션키*/
 	SOCKET sock;
+	/*컴플리션키*/
+
 	DWORD bytesTrans;
 	LPOVER_DATA ioInfo;
 	DWORD flags = 0;
@@ -169,7 +178,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 		BOOL bGQCS = GetQueuedCompletionStatus(
 			shareData->hComPort,
 			&bytesTrans,
-			&sock,
+			&sock,//컴플리션키
 			(LPOVERLAPPED*)&ioInfo,
 			INFINITE
 			);//errorㅊ리 꼭 해줘야함 
@@ -191,7 +200,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
-					cout << '[' << client_data.name << ']' << client_data.hClntSock << "의 이름 입력 완료" << endl;
+					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;
 					TotalConnectedClientCount++;
 					LeaveCriticalSection(&cs);
 				}
@@ -325,7 +334,6 @@ void ServerClass::ExitIOCP()
 }
 void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA lpComp)
 {
-	//여기서 의문점 - 크리티컬색션 객체는 여러개 생성해도 연동?이 되는지
 
 	char CloseName[MAX_NAME_SIZE];
 	char tmp[MAX_NAME_SIZE + 128];
@@ -351,6 +359,7 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 		}
 	}
 	closesocket(sock);
+	TotalConnectedClientCount--;
 	sprintf(tmp, "[%s] is disconnected...\n", CloseName);
 	SendMsgFunc(tmp, lpComp, strlen(tmp));
 	delete ioInfo;
