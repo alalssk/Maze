@@ -248,7 +248,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 						
 					}
-					else if (ioInfo->buffer[1] == 'J')	//방 입장 요청
+					else if (ioInfo->buffer[1] == 'J')	//방 입장 요청 Join
 					{//@J_[방번호]
 						char *cRoomNum;
 						int iRoomNum;
@@ -498,27 +498,47 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 	return false;
 }
 const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum)
-{//이 함수는 항상 cs안에있어야함
-	//iter 해당 id찾고 while문 밖에서 iter에 접근하기 부터 확실하게 해놓고 만들자
-	char name[MAX_NAME_SIZE] = "";
+{
 	list<ChatRoom>::iterator iter_room;
+	list<CLIENT_DATA>::iterator iter_user;
 	iter_room = lpComp->ChatRoomList.begin();
 	while (iter_room != lpComp->ChatRoomList.end())
 	{
 		if (iter_room->ChatRoomNum == RoomNum)
 		{
-
+			break;
 		}
 		else iter_room++;
 	}
-	list<CLIENT_DATA>::iterator iter_user;
-	iter_user = lpComp->Clients.begin();
-	while (iter_user != lpComp->Clients.end())
+	if (iter_room == lpComp->ChatRoomList.end())
+	{//방을 못찾았으면
+		cout << "방을 찾지 못함" << endl;
+		return false;
+	}
+	else if (iter_room->UserCount >= 3)
+	{//방을 찾았지만 꽉찬경우
+		cout << "방이 꽉참" << endl;
+		return false;
+	}
+	else
 	{
-		if (iter_user->hClntSock == sock)
+		iter_user = lpComp->Clients.begin();
+		while (iter_user != lpComp->Clients.end())
 		{
-			iter_user->MyRoom = RoomNum;
-
+			if (iter_user->hClntSock == sock)
+			{
+				EnterCriticalSection(&cs);//cs
+				iter_user->MyRoom = RoomNum;
+				strcpy(iter_room->ClientsID[iter_room->UserCount++], iter_user->name);
+				LeaveCriticalSection(&cs);//cs
+				return true;
+			}
+			else iter_user++;
+		}
+		if (iter_user == lpComp->Clients.end())
+		{
+			cout << "접속죽인 유저가 아닙니다" << endl;
+			return false;
 		}
 	}
 	return false;
