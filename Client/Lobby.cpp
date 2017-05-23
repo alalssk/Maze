@@ -9,8 +9,9 @@ Lobby::Lobby()
 Lobby::~Lobby()
 {
 }
-const int Lobby::LobbyMain()
+const int Lobby::LobbyMain(SOCKET sock)
 {
+	setSock(sock);
 	ClearXY();
 	PrintLobbyListBox();
 	GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
@@ -45,26 +46,27 @@ const int Lobby::LobbyMain()
 		if (Linfo.GetLobbyTxtNum() == 0) //방만들기
 		{
 			if (key == SPACE || key == ENTER)
-			{
-				return 0; 
+			{//[방번호]########의 방
+				if(req_CreateRoom())return 0; 
 			}
 		} 
-		//else if (Linfo.GetLobbyTxtNum() == 1)
+		//else if (Linfo.GetLobbyTxtNum() == 3)
 		//{
 		//	if (key == SPACE || key == ENTER)
 		//	{
 		//		//ClearXY();
 
-		//		return 1; //대기방참가(join)
+		//		return 3; //대기방참가(join)
 		//	}
 		//} 메뉴 지웠음 방 선택으로 입장 가능하게 할거니깐!
-		else if (Linfo.GetLobbyTxtNum() == 2) //logoout
+		//그러면 얘를 3으로 해야지 ㅅㅂ 안그러면 lobbyTxtNum 이 3이안되잖아
+		else if (Linfo.GetLobbyTxtNum() == 1) //logoout
+		{
+			if (key == SPACE || key == ENTER) return 1;
+		}
+		else if (Linfo.GetLobbyTxtNum() == 2)// exit
 		{
 			if (key == SPACE || key == ENTER) return 2;
-		}
-		else if (Linfo.GetLobbyTxtNum() == 3)// exit
-		{
-			if (key == SPACE || key == ENTER) return 3;
 		}
 	}
 
@@ -109,4 +111,19 @@ void Lobby::initRoomListCheck()
 		cout << "   ";
 	}
 
+}
+
+void Lobby::setSock(SOCKET sock)
+{
+	this->sock = sock;
+}
+bool Lobby::req_CreateRoom()
+{
+	char recvBuf[3] = "";
+	send(sock, "@R", 2, 0);
+	recv(sock, recvBuf, 3, 0);
+	//실패(@R0) or 성공(@R1)
+	if (recvBuf[2] == '1')return true;
+	else return false;
+	
 }

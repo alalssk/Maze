@@ -4,6 +4,7 @@
 #include <WinSock2.h>
 #include <Windows.h>
 #include<list>
+#include<vector>
 #include<string>
 #include "LogClass.h"//log
 #include"ServerDB.h"
@@ -28,6 +29,7 @@ class ServerClass
 		SOCKET hClntSock;
 		SOCKADDR_IN clntAdr;
 		char name[MAX_NAME_SIZE];
+		int MyRoom;
 	}CLIENT_DATA, *LPCLIENT_DATA;
 
 	typedef struct    // buffer info
@@ -59,19 +61,22 @@ class ServerClass
 		//SOCKET sClients[MAX_CLN_NUM];
 		DWORD recvBytes, flags;
 	} Shared_DATA, *LPShared_DATA;
-	WSADATA	wsaData;
-
 
 	LPShared_DATA shareData;
+
+
+
 	SYSTEM_INFO sysInfo;
 	HANDLE hTheards[MAX_THR_NUM];
-
+	WSADATA	wsaData;
 
 	static bool ExitFlag;
 	static int TotalConnectedClientCount;
+	static int TotalCreateRoomCount;
 
 	const SOCKET GetListenSock(const int Port, const int Backlog);
 	static void CloseClientSock(SOCKET, LPOVER_DATA, LPShared_DATA);
+	static const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
 	static void SendMsgFunc(char* buf, LPShared_DATA lpComPort, DWORD RecvSz);
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
@@ -79,6 +84,7 @@ class ServerClass
 	static CRITICAL_SECTION cs;
 	//	void ErrorHandling(const char *message);
 
+	
 
 public:
 	static LogClass Chatlog;
@@ -88,6 +94,8 @@ public:
 	~ServerClass();
 	bool ServerClassMain();
 	void printConnectClientNum();
+	void Print_UserList();
+	void Print_RoomList();
 	void ExitIOCP();
 };
 

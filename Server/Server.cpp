@@ -12,12 +12,16 @@ int main()
 	bool exitFlag = false;
 	while (!exitFlag)
 	{
-		cout << "종료는 5";
+		cout << "접속중인 클라 수 보기(1) 대기방 출력(2) 종료는 (5)" << endl;
 		cin >> input;
 		switch (input)
 		{
 		case 1:
 			sc.printConnectClientNum();
+			sc.Print_UserList();
+			break;
+		case 2:
+			sc.Print_RoomList();
 			break;
 		case 5:
 			exitFlag = true;

@@ -28,13 +28,11 @@ int LoginMain::LoginMainStart()
 	SelectServerTxtList();
 	loginTxtCheckPrint(0);
 	switch (InputKey())
-	{
+	{//exit와 logout코드를 통합할 필요가 있는것 같군
 	case 0://exit
 		ClearXY();
-		//gotoxy(30, 30);
-		//cout << "접속 종료" << endl;
 		//clientExit();
-		return 0;
+		return 3;//EXIT_CODE 메인(client.cpp)에서 3임
 
 	case 1://connect
 		cout << "접속완료" << endl;

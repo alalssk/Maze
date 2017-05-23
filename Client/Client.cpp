@@ -5,9 +5,10 @@
 #include"Lobby.h"
 
 #define CREATE_ROOM 0
-#define JOIN_ROOM 1
+#define JOIN_ROOM 3
+#define LOGOUT_CODE 1
 #define EXIT_CODE 2
-#define LOGOUT_CODE 3
+
 int main()
 {
 	LoginMain lmain;
@@ -29,10 +30,10 @@ int main()
 			{
 				/*
 				LobbyMain
-				방만들기:? 3, 게임참가: 2, 로그아웃: 1, 종료: 0
+				방만들기:0, 게임참가: 1, 로그아웃: 2, 종료: 3
 				게임끝나면 로비로(임시)
 				*/
-				switch (Lobby.LobbyMain())
+				switch (Lobby.LobbyMain(lmain.toServer.getSocket()))
 				{
 				case CREATE_ROOM:
 
@@ -40,15 +41,17 @@ int main()
 				case JOIN_ROOM:
 
 					break;
-				case EXIT_CODE:
-					ExitFlag = true;
-					break;
 				case LOGOUT_CODE:
 					LogoutFlag = true;
+					//소캣 해제 필요
+					break;
+				case EXIT_CODE:
+					ExitFlag = true;
 					break;
 
 				}
 			}
+			//
 		}
 	}
 	return 0;

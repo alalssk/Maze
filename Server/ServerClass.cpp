@@ -1,5 +1,6 @@
 #include "ServerClass.h"
 int ServerClass::TotalConnectedClientCount = 0;
+int ServerClass::TotalCreateRoomCount = 0;
 bool ServerClass::ExitFlag = false;
 int ServerClass::ChatRoomCount = 0;
 LogClass ServerClass::Chatlog;
@@ -78,8 +79,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 			(SOCKADDR*)&client_data.clntAdr,
 			&addrLen
 			);
-		/*깔끔한 종료처리를 위해서는 비동기 accept를 해야한다 어떻게?*/
-		/*굳이 비동기 처리를 할 필요가있나...? 서버 종료할때 accept스레드를 종료키시면 되지않나..?*/
+
 		cout << "Accept 처리중..." << endl;
 		//
 		if (CreateIoCompletionPort(
@@ -99,7 +99,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
 		ioInfo->Mode = FIRST_READ;//첫 접속 처리를 위한 모드(ID password 처리)
 		/*IO_PENDING 에러처리*/
-		cout << "client sock: " << client_data.hClntSock<<'-' << inet_ntoa(client_data.clntAdr.sin_addr) << endl;
+		cout << "client sock: " << client_data.hClntSock << '-' << inet_ntoa(client_data.clntAdr.sin_addr) << endl;
 		if (WSARecv(
 			client_data.hClntSock,
 			&(ioInfo->wsaBuf),
@@ -189,7 +189,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			{
 				char first_send[5] = "";
 				int DBcode;
-				cout << ioInfo->buffer << endl;
 				if (sDB.Check_Password(ioInfo->buffer))
 				{
 					DBcode = 0;//접속ㅇㅋ
@@ -197,7 +196,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
-
+					client_data.MyRoom = 0;
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;
@@ -206,6 +205,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				}
 				else {
 					DBcode = 2;//비번다름코드;
+					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));//얘를 cs로 감쌀 필요가 있는지...?
 					cout << '[' << client_data.name << "]비번틀림" << endl;
 
 				}
@@ -221,21 +221,50 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				delete ioInfo;
 				//여기다 ioInfo->Mode = ROOM_READ 로 설정하고 룸 정보만 recv send 함
 				//특정 코드(방생성 방입장 종료코드 등)을 받으면 그에대한 모드 처리
+
 				/*WSARecv*/
 				ioInfo = new OVER_DATA;
 				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-				ioInfo->wsaBuf.len = BUF_SIZE;
-				ioInfo->wsaBuf.buf = ioInfo->buffer;//버퍼의 포인터를 담음....?여기서 wsaBuf의 필요성에대해 알아보도록 하자
 				if (DBcode == 2)ioInfo->Mode = FIRST_READ; //비번다르면 다시 읽어야하니까
 				else ioInfo->Mode = READ;
-				WSARecv(sock, &(ioInfo->wsaBuf),
-					1, NULL, &flags, &(ioInfo->overlapped), NULL);
 			}
-			else if (ioInfo->Mode == ROOM_READ)
+			else if (ioInfo->Mode == READ)
 			{
-				cout << "room READ 부분" << endl;
+				if (ioInfo->buffer[0] == '@')//방생성(@R)-MyRoom이 0인 경우만, 방 나가기(@E)-MyRoom이 0이 아닌 경우만
+				{
+					if (ioInfo->buffer[1] == 'R')	//방 생성 요청이 오면
+					{								//방 생성 완료 후 모든 클라이언트에 새로운 방들에 대한 정보를 send함
+						if (CreateRoomFunc(shareData, sock))//방 생성
+						{
+							//그리고 모든클라에 새로운 방정보 send
+							cout << "방 생성완료" << endl;
+							send(sock, "@R1", 3, 0);
+						}
+						else 
+						{
+							cout << "방 생성 실패" << endl;
+							send(sock, "@R0", 3, 0);
+						}
+
+						
+					}
+					else if (ioInfo->buffer[1] == 'E')
+					{
+						cout << "방 나가기 요청 패킷 받음" << endl;
+					}
+				}
+				/*WSARecv*/
+				delete ioInfo;
+				ioInfo = new OVER_DATA;
+				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+				ioInfo->Mode = READ;
+
 			}
 
+			ioInfo->wsaBuf.len = BUF_SIZE;
+			ioInfo->wsaBuf.buf = ioInfo->buffer;//버퍼의 포인터를 담음....?여기서 wsaBuf의 필요성에대해 알아보도록 하자
+			WSARecv(sock, &(ioInfo->wsaBuf),
+				1, NULL, &flags, &(ioInfo->overlapped), NULL);
 		}
 		else
 		{
@@ -345,6 +374,10 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 	{
 		if (iter->hClntSock == sock)
 		{
+			if (iter->MyRoom != 0)
+			{
+				//func(roomNum, id)
+			}
 			EnterCriticalSection(&cs);
 			strcpy(CloseName, iter->name);
 			iter = lpComp->Clients.erase(iter);
@@ -364,4 +397,75 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 	delete ioInfo;
 	cout << tmp;
 	//puts("DisConnect Client!");
+}
+const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
+{
+	ChatRoom room;
+	/*
+	*RoomName
+	*RoomNumber
+	*Client_IDs[3]
+	*UserCount --> max=3
+	*/
+	char tmpRoomName[40] = "";
+	list<CLIENT_DATA>::iterator iter;
+	iter = lpComp->Clients.begin();
+	while (iter != lpComp->Clients.end())
+	{
+		if (iter->hClntSock == sock)
+		{
+			if (iter->MyRoom == 0)
+			{
+				sprintf(tmpRoomName, "[%s]님의 방입니다.", iter->name);
+				strcpy(room.chatRoomName, tmpRoomName);
+				room.ChatRoomNum = TotalCreateRoomCount + 1;
+				strcpy(room.ClientsID[0], iter->name);
+				room.UserCount = 1;
+
+				iter->MyRoom = room.ChatRoomNum;
+
+				EnterCriticalSection(&cs);
+				lpComp->ChatRoomList.push_back(room);
+				TotalCreateRoomCount++;
+				LeaveCriticalSection(&cs);
+				return true;
+			}
+			else
+			{
+				return false;//이미 방에 입장중
+			}
+
+			break;
+		}
+		else
+		{
+			iter++;
+		}
+	}
+
+	return false;//ID를 찾을수 없음.
+
+
+}
+void ServerClass::Print_UserList()
+{
+	list<CLIENT_DATA>::iterator iter;
+	iter = shareData->Clients.begin();
+	while (iter != shareData->Clients.end())
+	{
+		cout << '[' << iter->name << ']';
+		iter++;
+	}
+	cout << endl;
+
+}
+void ServerClass::Print_RoomList()
+{
+	list<ChatRoom>::iterator iter;
+	iter = shareData->ChatRoomList.begin();
+	while (iter != shareData->ChatRoomList.end())
+	{
+		cout << '[' << iter->chatRoomName << ']'<<endl;
+		iter++;
+	}
 }

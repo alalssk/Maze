@@ -29,10 +29,6 @@ public:
 private:
 	MYSQL *connection = NULL, conn;
 
-	/*아래 세 변수는 스택영역에다 해도 될거같은데?*/
-	//MYSQL_RES * sql_result;
-	//MYSQL_ROW sql_row;
-	//int query_stat;
 
 
 };
