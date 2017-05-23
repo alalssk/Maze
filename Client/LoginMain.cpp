@@ -32,7 +32,7 @@ int LoginMain::LoginMainStart()
 	case 0://exit
 		ClearXY();
 		//clientExit();
-		return 3;//EXIT_CODE 메인(client.cpp)에서 3임
+		return 2;//EXIT_CODE 메인(client.cpp)에서 2임
 
 	case 1://connect
 		cout << "접속완료" << endl;

@@ -62,7 +62,7 @@ const int Lobby::LobbyMain(SOCKET sock)
 		//그러면 얘를 3으로 해야지 ㅅㅂ 안그러면 lobbyTxtNum 이 3이안되잖아
 		else if (Linfo.GetLobbyTxtNum() == 1) //logoout
 		{
-			if (key == SPACE || key == ENTER) return 1;
+			if (key == SPACE || key == ENTER) return 4;
 		}
 		else if (Linfo.GetLobbyTxtNum() == 2)// exit
 		{

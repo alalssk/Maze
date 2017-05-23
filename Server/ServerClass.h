@@ -77,6 +77,8 @@ class ServerClass
 	const SOCKET GetListenSock(const int Port, const int Backlog);
 	static void CloseClientSock(SOCKET, LPOVER_DATA, LPShared_DATA);
 	static const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
+	static const bool ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id);//이 함수는 항상 cs안에있어야함
+	static const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);//이 함수는 항상 cs안에있어야함
 	static void SendMsgFunc(char* buf, LPShared_DATA lpComPort, DWORD RecvSz);
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
