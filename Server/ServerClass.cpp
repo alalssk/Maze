@@ -13,6 +13,7 @@ ServerClass::ServerClass()
 	//memset(lpComPort, 0, sizeof(ComPort)); 왜 이렇게 초기화하면 push_back 부분에서 크래쉬가 나는지...?
 	shareData->flags = 0;
 	shareData->Clients_Num = 0;
+	
 }
 
 
@@ -143,16 +144,6 @@ bool ServerClass::Create_IOCP_ThreadPool()
 	return true;
 
 }
-void ServerClass::SendMsgFunc(char* buf, LPShared_DATA lpComPort, DWORD RecvSz)
-{
-	list<CLIENT_DATA>::iterator iter;
-	iter = lpComPort->Clients.begin();
-	while (iter != lpComPort->Clients.end())
-	{
-		send(iter->hClntSock, buf, RecvSz, 0);
-		iter++;//ㅅㅂ뺴먹지 말자
-	}
-}
 unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 {
 	//HANDLE hComPort = (HANDLE)pComPort;
@@ -235,14 +226,18 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					if (ioInfo->buffer[1] == 'R')	//방 생성 요청이 오면
 					{								//방 생성 완료 후 모든 클라이언트에 새로운 방들에 대한 정보를 send함
 						if (CreateRoomFunc(shareData, sock))//방 생성
-						{
-							//그리고 모든클라에 새로운 방정보 send
+						{//방 삭제할때도 보내줘야함
+							//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
+
 							cout << "방 생성완료" << endl;
+							send(sock, "스", 3, 0);//스레기패킷
 							send(sock, "@R1", 3, 0);
+							SendWaitingRoomList(shareData);
 						}
 						else 
 						{
 							cout << "방 생성 실패" << endl;
+							send(sock, "스", 3, 0);//스레기패킷
 							send(sock, "@R0", 3, 0);
 						}
 
@@ -256,12 +251,13 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						cRoomNum = strtok(NULL, "_");
 						iRoomNum = atoi(cRoomNum);
 						cout << "방 입장 패킷 받음" << iRoomNum << endl;
+						JoinRoomFunc(shareData, sock, iRoomNum);
 						//func(shareData, sock, roomNum)
 
 
 					}
-					else if (ioInfo->buffer[1] == 'E')
-					{
+					else if (ioInfo->buffer[1] == 'E')//방 나가기 요청 Exit
+					{//@E_[방번호]_[ID]
 						cout << "방 나가기 요청 패킷 받음" << endl;
 					}
 				}
@@ -406,7 +402,7 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 	}
 	closesocket(sock);
 
-	sprintf(tmp, "[%s] is disconnected...\n", CloseName);
+	sprintf(tmp, "/[%s] is disconnected...\n", CloseName);
 	SendMsgFunc(tmp, lpComp, strlen(tmp));
 	delete ioInfo;
 	cout << tmp;
@@ -460,7 +456,6 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 
 
 }
-
 const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id)
 {//이 함수는 항상 cs안에있어야함
 	list<ChatRoom>::iterator iter;
@@ -563,6 +558,38 @@ void ServerClass::Print_RoomList()
 	while (iter != shareData->ChatRoomList.end())
 	{
 		cout << '[' << iter->chatRoomName << ']'<<endl;
+		iter++;
+	}
+}
+bool ServerClass::SendWaitingRoomList(LPShared_DATA lpComp)
+{
+	char SendWaitingRoomListBuf[40 * 9999] = "";
+	char cRoomNum[5] = "";
+	
+	list<ChatRoom>::iterator iter;
+	iter = lpComp->ChatRoomList.begin();
+	sprintf(SendWaitingRoomListBuf, "!%d", lpComp->ChatRoomList.size());
+	while (iter != lpComp->ChatRoomList.end())
+	{
+		strcat(SendWaitingRoomListBuf, "_No.");
+		_itoa(iter->ChatRoomNum, cRoomNum, 10);//itoa( 숫자값 , 값이 들어갈 string 배열 , 숫자값을 변환할 진수 ) 
+		strcat(SendWaitingRoomListBuf, cRoomNum);
+		strcat(SendWaitingRoomListBuf, ">>");
+		strcat(SendWaitingRoomListBuf, iter->chatRoomName);
+		iter++;
+	}
+	cout << SendWaitingRoomListBuf << endl;
+	SendMsgFunc(SendWaitingRoomListBuf, lpComp, strlen(SendWaitingRoomListBuf));
+	cout << "방 리스트 보내기 완료" << endl;
+	return true;
+}
+void ServerClass::SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD SnedSz)
+{
+	list<CLIENT_DATA>::iterator iter;
+	iter = lpComp->Clients.begin();
+	while (iter != lpComp->Clients.end())
+	{
+		send(iter->hClntSock, buf, SnedSz, 0);
 		iter++;
 	}
 }

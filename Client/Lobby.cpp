@@ -32,13 +32,14 @@ const int Lobby::LobbyMain(SOCKET sock)
 		}
 		else
 		{
-			//RoomInfoListMain();
-			//Linfo.SetLobbyListNumber(key);
-			//initRoomListCheck();
-			//PrintLobbyListCheck(Linfo.GetLobbyListNumber());
 
-			//AllClearPrintLobbyTxtBox();
-			//PrintLobbyTxt();
+			//RoomInfoListMain();
+			Linfo.SetLobbyListPointNumber(key);
+			initRoomListCheck();
+			PrintLobbyListCheck(Linfo.GetLobbyListPointNumber());
+
+			AllClearPrintLobbyTxtBox();
+			PrintLobbyTxt();
 		}
 
 
@@ -123,7 +124,49 @@ bool Lobby::req_CreateRoom()
 	send(sock, "@R", 2, 0);
 	recv(sock, recvBuf, 3, 0);
 	//실패(@R0) or 성공(@R1)
+	gotoxy(5, 30); cout << "req_createRoom: "<<recvBuf;
 	if (recvBuf[2] == '1')return true;
 	else return false;
 	
+}
+void Lobby::PrintWaitionRoomList(char *buf)
+{//[방개수]_[No.[방번호] 방이름]_[방이름]_[방이름]
+	//WaitingRoomCount
+	char *tmp;
+	int iRoomCount;
+	initPrintWaitingRoomList();
+	if (buf[0] == '0')
+	{//방이없음
+		Linfo.WaitingRoomCount = 0;
+	}
+	else
+	{//방이 있는경우
+		
+		tmp = strtok(buf, "_");
+		iRoomCount = atoi(tmp);
+		Linfo.WaitingRoomCount = iRoomCount;
+		for (int i = 0; i < Linfo.WaitingRoomCount - 1; i++)
+		{
+			gotoxy(7 + 3, 5 + i);
+			tmp = strtok(NULL, "_");
+			cout << tmp << endl;
+		}
+	}
+	
+
+}
+
+void Lobby::initPrintWaitingRoomList()
+{
+	for (int i = 0; i < 14; i++)
+	{
+		gotoxy(7 + 3, 5 + i);
+		cout << "                    ";
+	}
+}
+
+void Lobby::PrintLobbyListCheck(int WaitingRoomListPointNumber)
+{
+	gotoxy(7, 5 + WaitingRoomListPointNumber);
+	cout << "☞ ";
 }

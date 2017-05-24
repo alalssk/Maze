@@ -1,7 +1,7 @@
 #include "LobbyInfo.h"
 
 
-LobbyInfo::LobbyInfo() :LobbyTxtNum(0), LobbyListNumber(0), LobbyFlag(false)
+LobbyInfo::LobbyInfo() :LobbyTxtNum(0), LobbyListPointNum(0), LobbyFlag(false), WaitingRoomListNum(0)
 {
 }
 
@@ -37,4 +37,19 @@ void LobbyInfo::SetLobbyFlag(const int key)
 		if (LobbyFlag == false)this->LobbyFlag = true;
 		else this->LobbyFlag = false;
 	}
+}
+void LobbyInfo::SetLobbyListPointNumber(const int key)
+{
+	if (key == UP)
+	{
+		if (LobbyListPointNum > 0) LobbyListPointNum--;
+	}
+	else if (key == DOWN)
+	{
+		if (LobbyListPointNum < WaitingRoomListNum) LobbyListPointNum++;//현재 방 개수만큼만 올릴수있음
+	}
+}
+int LobbyInfo::GetLobbyListPointNumber()
+{
+	return this->LobbyListPointNum;
 }

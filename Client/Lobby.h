@@ -12,6 +12,9 @@ class Lobby :protected grideXY
 	void PrintLobbyTxt();
 
 	void initRoomListCheck();
+	
+	void initPrintWaitingRoomList();
+	void PrintLobbyListCheck(int);
 public:
 	Lobby();
 	virtual ~Lobby();
@@ -19,5 +22,7 @@ public:
 	const int LobbyMain(SOCKET sock);//일단 소캣을 인자로 받아서 send요청을 하도록 하자
 	void setSock(SOCKET sock);
 	bool req_CreateRoom();
+
+	void PrintWaitionRoomList(char *);//얘는 ConnectToServer의 Recv쓰레드 안에서만 호출함
 };
 

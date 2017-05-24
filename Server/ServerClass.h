@@ -79,14 +79,15 @@ class ServerClass
 	static const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
 	static const bool ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id);//이 함수는 항상 cs안에있어야함
 	static const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);
-	static void SendMsgFunc(char* buf, LPShared_DATA lpComPort, DWORD RecvSz);
+	static void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
+	static bool SendWaitingRoomList(LPShared_DATA lpComp);
+
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
 	static unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);
 	static CRITICAL_SECTION cs;
 	//	void ErrorHandling(const char *message);
 
-	
 
 public:
 	static LogClass Chatlog;
