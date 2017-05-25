@@ -21,7 +21,6 @@ class Lobby :protected grideXY
 	HANDLE hSndThread, hRcvThread;
 	static HANDLE hEventForRequest;
 	static bool threadOn;//임시
-	
 	static unsigned WINAPI RecvMsg(PVOID arg);
 
 	static int ClientMode;//로그인화면(0), 로비(1), 대기방(2), 게임중(3);
@@ -38,6 +37,10 @@ class Lobby :protected grideXY
 	bool req_CreateRoom();
 	bool req_ExitClient();
 	bool req_LogoutClient();
+	bool req_GetWaitingRoom();
+
+	void GetWaitionRoomList(char *);
+	void PrintWaitionRoomList();//얘는 ConnectToServer의 Recv쓰레드 안에서만 호출함
 public:
 	Lobby();
 	virtual ~Lobby();
@@ -46,6 +49,5 @@ public:
 	void setSock(SOCKET sock);
 
 
-	void PrintWaitionRoomList(char *);//얘는 ConnectToServer의 Recv쓰레드 안에서만 호출함
 };
 

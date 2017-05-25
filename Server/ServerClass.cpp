@@ -241,6 +241,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 						
 					}
+					else if (ioInfo->buffer[1] == 'r')//방리스트 요청 
+					{
+						send(sock, "@r1", 3, 0);
+						SendWaitingRoomList(shareData);
+					}
 					else if (ioInfo->buffer[1] == 'J')	//방 입장 요청 Join
 					{//@J_[방번호]
 						char *cRoomNum;
@@ -480,6 +485,7 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 			{//방에 나뿐이없으면 그냥 방 삭제
 				iter = lpComp->ChatRoomList.erase(iter);
 				//방이 없어졌으니 새로운 방 정보들을 모든 클라에 send
+				SendWaitingRoomList(lpComp);
 				return true;
 			}
 			else

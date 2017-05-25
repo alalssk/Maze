@@ -46,7 +46,7 @@ void LobbyInfo::SetLobbyListPointNumber(const int key)
 	}
 	else if (key == DOWN)
 	{
-		if (LobbyListPointNum < WaitingRoomListNum) LobbyListPointNum++;//현재 방 개수만큼만 올릴수있음
+		if (LobbyListPointNum < WaitingRoomListNum-1) LobbyListPointNum++;//현재 방 개수만큼만 올릴수있음
 	}
 }
 int LobbyInfo::GetLobbyListPointNumber()

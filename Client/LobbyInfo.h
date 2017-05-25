@@ -5,14 +5,18 @@
 class LobbyInfo
 {
 	int LobbyTxtNum;
-	int WaitingRoomListNum;//현재 방 개수
+
 	bool LobbyFlag;
 	int LobbyListPointNum;
 
+
 public:
+	
 	LobbyInfo();
 	virtual ~LobbyInfo();
-	int WaitingRoomCount;
+
+	int WaitingRoomListNum;//현재 방 개수
+	char WaitingRoomList[9999][50];
 	/*lobby의 기능 출력을 위한 변수 세팅을 위한 함수들*/
 	const int GetLobbyTxtNum();
 	void SetLobbyTxtNum(const int);

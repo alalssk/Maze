@@ -15,21 +15,30 @@ Lobby::~Lobby()
 }
 const int Lobby::LobbyMain(SOCKET sock)
 {
-	setSock(sock);
-	td.sock = sock;
-	td.lobby = this;
-	hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
-	hRcvThread = (HANDLE)_beginthreadex(NULL, 0, &RecvMsg, (void*)&td, 0, NULL);
+	if (!threadOn)
+	{
+		setSock(sock);
+		td.sock = sock;
+		td.lobby = this;
+		hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
+		hRcvThread = (HANDLE)_beginthreadex(NULL, 0, &RecvMsg, (void*)&td, 0, NULL);
+		threadOn = true;
+		
+	}
 
 	ClearXY();
 	PrintLobbyListBox();
 	GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
+	Sleep(50);
+	req_GetWaitingRoom();
+	Sleep(50);
+	PrintWaitionRoomList();
 	PrintLobbyTxt();
 	while (1)
 	{
 		key = getKeyDirectionCheck();
 		Linfo.SetLobbyFlag(key);
-
+		
 		if (Linfo.GetLobbyFlag() == false)
 		{
 
@@ -37,14 +46,18 @@ const int Lobby::LobbyMain(SOCKET sock)
 			initRoomListCheck();
 			AllClearPrintLobbyTxtBox();
 			GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
+			//PrintWaitionRoomList();
+
 			PrintLobbyTxt();
 		}
 		else
 		{
 
 			//RoomInfoListMain();
+			
 			Linfo.SetLobbyListPointNumber(key);
 			initRoomListCheck();
+			PrintWaitionRoomList();
 			PrintLobbyListCheck(Linfo.GetLobbyListPointNumber());
 
 			AllClearPrintLobbyTxtBox();
@@ -90,6 +103,7 @@ const int Lobby::LobbyMain(SOCKET sock)
 				if (req_LogoutClient())
 				{
 					LogoutFlag = true;
+					threadOn = false;
 					return 4;
 
 				}
@@ -115,6 +129,7 @@ const int Lobby::LobbyMain(SOCKET sock)
 				if (req_ExitClient())
 				{
 					ExitFlag = true;
+					threadOn = false;
 					return 2;
 
 				}
@@ -183,10 +198,18 @@ void Lobby::setSock(SOCKET sock)
 {
 	this->sock = sock;
 }
+bool Lobby::req_GetWaitingRoom()//방요청(시작시)
+{
+	send(sock, "@r", 2, 0);
+	DWORD ret;
+	ret = WaitForSingleObject(hEventForRequest, 3000);
+	if (ret == WAIT_TIMEOUT) return false;
+	else return true;
+}
 bool Lobby::req_CreateRoom()
 {
 	send(sock, "@R", 2, 0);
-	cout << "방생성요청보냄" << endl;
+	//cout << "방생성요청보냄" << endl;
 	DWORD ret;
 	ret = WaitForSingleObject(hEventForRequest,3000);
 	if (ret == WAIT_TIMEOUT) return false;
@@ -195,7 +218,7 @@ bool Lobby::req_CreateRoom()
 bool Lobby::req_LogoutClient()
 {
 	send(sock, "@L", 2, 0);
-	cout << "로그아웃요청보냄" << endl;
+	//cout << "로그아웃요청보냄" << endl;
 	DWORD ret;
 	ret = WaitForSingleObject(hEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
@@ -204,36 +227,49 @@ bool Lobby::req_LogoutClient()
 bool Lobby::req_ExitClient()
 {
 	send(sock, "@G", 2, 0);
-	cout << "게임종료요청보냄" << endl;
+	//cout << "게임종료요청보냄" << endl;
 	DWORD ret;
 	ret = WaitForSingleObject(hEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
-void Lobby::PrintWaitionRoomList(char *buf)
+void Lobby::PrintWaitionRoomList()
+{
+	initPrintWaitingRoomList();
+	gotoxy(0, 0); Sleep(100);
+	for (int i = 0; i < Linfo.WaitingRoomListNum; i++)
+	{
+		gotoxy(7 + 3, 5 + i); cout << Linfo.WaitingRoomList[i];
+
+	}
+}
+void Lobby::GetWaitionRoomList(char *buf)
 {//[방개수]_[No.[방번호] 방이름]_[방이름]_[방이름]
 	//WaitingRoomCount
 	char *tmp;
 	int iRoomCount;
-	initPrintWaitingRoomList();
+	
+	memset(Linfo.WaitingRoomList, 0, sizeof(Linfo.WaitingRoomList));//2차원배열(tmp[max][max]) 초기화하는 법 확실하게 테스트 하자
+																	//그냥 memset(tmp,0,sizeof(tmp)) 해도 2차원 다 초기화 된다.
 	if (buf[0] == '0')
 	{//방이없음
-		Linfo.WaitingRoomCount = 0;
+		Linfo.WaitingRoomListNum = 0;
 	}
 	else
 	{//방이 있는경우
 
 		tmp = strtok(buf, "_");
 		iRoomCount = atoi(tmp);
-		Linfo.WaitingRoomCount = iRoomCount;
-		for (int i = 0; i < Linfo.WaitingRoomCount - 1; i++)
+		Linfo.WaitingRoomListNum = iRoomCount;
+		for (int i = 0; i < Linfo.WaitingRoomListNum; i++)
 		{
-			gotoxy(7 + 3, 5 + i);
 			tmp = strtok(NULL, "_");
-			cout << tmp << endl;
+			strcpy(Linfo.WaitingRoomList[i], tmp);
+			
 		}
 	}
 
+	PrintWaitionRoomList();
 
 }
 
@@ -242,7 +278,7 @@ void Lobby::initPrintWaitingRoomList()
 	for (int i = 0; i < 14; i++)
 	{
 		gotoxy(7 + 3, 5 + i);
-		cout << "                    ";
+		cout << "                              ";
 	}
 }
 
@@ -265,7 +301,8 @@ unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
 
 	while (!ExitFlag && !LogoutFlag)
 	{
-		strLen = recv(td.sock, recvMsg, BUF_SIZE - 1, 0);	//이 부분에 send스레드에서 종료플레그가 켜지면 이벤트 처리를....
+		strLen = recv(td.sock, recvMsg, BUF_SIZE - 1, 0);	
+		//이 부분에 send스레드에서 종료플레그가 켜지면 이벤트 처리를....
 		//방법2. 소캣을 넌블로킹으로 만들기 (ioctlsocket)
 		if (strLen == -1)
 			return -1;
@@ -275,8 +312,9 @@ unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
 			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
 			//!0 이면 방이없다는 말임
 			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
-			if (recvMsg[1] == '0')td.lobby->PrintWaitionRoomList("0");
-			else td.lobby->PrintWaitionRoomList(recvMsg + 1);
+			if (recvMsg[1] == '0')td.lobby->GetWaitionRoomList("0");
+			else td.lobby->GetWaitionRoomList(recvMsg + 1);
+			memset(recvMsg, 0, sizeof(recvMsg));
 		}
 		else if (recvMsg[0] == '/')
 		{//채팅메시지 전용
@@ -291,6 +329,13 @@ unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
 					SetEvent(hEventForRequest);
 				}
 			}
+			else if (recvMsg[1] == 'r')//방요청(시작시)
+			{
+				if (recvMsg[2] == '1')
+				{
+					SetEvent(hEventForRequest);
+				}
+			}
 			else if (recvMsg[1] == 'L')//로그아웃요청완료(@L1)
 			{
 				if (recvMsg[2] == '1')
@@ -299,7 +344,7 @@ unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
 					LogoutFlag = true;
 				}
 			}
-			else if (recvMsg[1] == 'G')//종료요청완료(@E1)
+			else if (recvMsg[1] == 'G')//종료요청완료(@G1)
 			{
 				if (recvMsg[2] == '1')
 				{
@@ -308,7 +353,7 @@ unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
 				}
 			}
 		}
-		else { cout << "옳지않은 메세지: " << recvMsg << endl; Sleep(100); }
+		else {  }
 	}
 	cout << "exitRecvMsgThread" << endl;
 	return 0;
