@@ -1,9 +1,7 @@
 #include "ConnectToServer.h"
-bool ConnectToServer::ExitFlag = false;
-bool ConnectToServer::LogoutFlag = false;
-int ConnectToServer::ClientMode = 0;
-bool ConnectToServer::threadOn=false;//임시
-ConnectToServer::ConnectToServer()// :ExitFlag(false), LogoutFlag(false)
+
+
+ConnectToServer::ConnectToServer()
 {
 }
 ConnectToServer::~ConnectToServer()
@@ -37,10 +35,6 @@ bool ConnectToServer::setupSock()
 		fputc('\n', stderr);
 		return false;
 	}
-	td.sock = Sock;
-	hRcvThread = (HANDLE)_beginthreadex(NULL, 0, &RecvMsg, (void*)&td, 0, NULL);
-
-
 	return true;
 }
 
@@ -66,7 +60,6 @@ bool ConnectToServer::StartConnect(char* ID_Pass)
 			switch (code[1])
 			{
 			case '0':
-				threadOn = true;
 				return true;
 				break;
 			case '1'://일단 안씀 
@@ -85,60 +78,3 @@ const SOCKET ConnectToServer::getSocket()
 {
 	return this->Sock;
 }
-
-unsigned WINAPI ConnectToServer::RecvMsg(void * arg)   // read thread main
-{
-	ThreadData td = *((ThreadData*)arg);
-	char recvMsg[BUF_SIZE]="";
-	char *tmp_tok;
-	int itmp_RoomNum;
-	int strLen;
-	//ClientMode >= 1(lobby상태) 일때 넘어가도록 이벤트 처리 WaitSingleObject(hEvent,INFINITE);
-	//그럼 로그아웃할때 스레드도 종료시켜줘야겠지
-	while (!threadOn)
-	{
-		Sleep(500);
-	}
-	while (!ExitFlag)
-	{
-		strLen = recv(td.sock, recvMsg, BUF_SIZE - 1, 0);	//이 부분에 send스레드에서 종료플레그가 켜지면 이벤트 처리를....
-		//방법2. 소캣을 넌블로킹으로 만들기 (ioctlsocket)
-		if (strLen == -1)
-			return -1;
-
-		if (recvMsg[0] == '!')
-		{
-			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
-			//!0 이면 방이없다는 말임
-			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
-			if (recvMsg[1] == '0')td.lobby.PrintWaitionRoomList("0");
-			else td.lobby.PrintWaitionRoomList(recvMsg + 1);
-		}
-		else if (recvMsg[0] == '/')
-		{//채팅메시지 전용
-
-		}
-		else { cout << "옳지않은 메세지: " << recvMsg << endl; }
-	}
-	cout << "exitRecvMsg" << endl;
-	return 0;
-}
-
-
-//
-//void ConnectToServer::SetExitFlag(bool flag)
-//{
-//	this->ExitFlag = flag;
-//}
-//void ConnectToServer::SetLogoutFlag(bool flag)
-//{
-//	this->LogoutFlag = flag;
-//}
-//bool ConnectToServer::GetExitFlag()
-//{
-//	return this->ExitFlag;
-//}
-//bool ConnectToServer::GetLogoutFlag()
-//{
-//	return this->LogoutFlag;
-//}

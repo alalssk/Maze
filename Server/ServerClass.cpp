@@ -230,14 +230,12 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 							//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
 
 							cout << "방 생성완료" << endl;
-							send(sock, "스", 3, 0);//스레기패킷
 							send(sock, "@R1", 3, 0);
 							SendWaitingRoomList(shareData);
 						}
 						else 
 						{
 							cout << "방 생성 실패" << endl;
-							send(sock, "스", 3, 0);//스레기패킷
 							send(sock, "@R0", 3, 0);
 						}
 
@@ -260,6 +258,20 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					{//@E_[방번호]_[ID]
 						cout << "방 나가기 요청 패킷 받음" << endl;
 					}
+					else if (ioInfo->buffer[1] == 'L')//게임 로그아웃요청 
+					{//
+						cout << "로그아웃 요청 패킷 받음" << endl;
+						/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
+						send(sock, "@L1", 3, 0);
+
+					}
+					else if (ioInfo->buffer[1] == 'G')//게임종료요청 
+					{//
+						cout << "게임종료 요청 패킷 받음" << endl;
+						/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
+						send(sock, "@G1", 3, 0);
+					}
+					
 				}
 				/*WSARecv*/
 				delete ioInfo;

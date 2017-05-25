@@ -17,7 +17,7 @@ int main()
 	
 	int code;
 
-	while (!lmain.toServer.ExitFlag)
+	while (!Lobby.ExitFlag)
 	{
 		code = lmain.LoginMainStart();
 		if (code == EXIT_CODE)//0 立加辆丰, 1 立加己傍
@@ -27,8 +27,8 @@ int main()
 		}
 		else if (code == CONNECTION_CODE)
 		{
-			lmain.toServer.LogoutFlag = false;
-			while (!lmain.toServer.ExitFlag && !lmain.toServer.LogoutFlag)
+			Lobby.LogoutFlag = false;
+			while (!Lobby.ExitFlag && !Lobby.LogoutFlag)
 			{
 				/*
 				LobbyMain
@@ -44,11 +44,11 @@ int main()
 
 					break;
 				case LOGOUT_CODE:
-					lmain.toServer.LogoutFlag = true;
+
 					//家墓 秦力 鞘夸
 					break;
 				case EXIT_CODE:
-					lmain.toServer.ExitFlag = true;
+
 					break;
 
 				}

@@ -1,5 +1,9 @@
 #include "Lobby.h"
-
+int Lobby::ClientMode = 0;
+bool Lobby::threadOn = false;//임시
+bool Lobby::ExitFlag = false;
+bool Lobby::LogoutFlag = false;
+HANDLE Lobby::hEventForRequest;
 
 Lobby::Lobby()
 {
@@ -12,6 +16,11 @@ Lobby::~Lobby()
 const int Lobby::LobbyMain(SOCKET sock)
 {
 	setSock(sock);
+	td.sock = sock;
+	td.lobby = this;
+	hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
+	hRcvThread = (HANDLE)_beginthreadex(NULL, 0, &RecvMsg, (void*)&td, 0, NULL);
+
 	ClearXY();
 	PrintLobbyListBox();
 	GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
@@ -48,9 +57,22 @@ const int Lobby::LobbyMain(SOCKET sock)
 		{
 			if (key == SPACE || key == ENTER)
 			{//[방번호]########의 방
-				if(req_CreateRoom())return 0; 
+				if(req_CreateRoom())return 0;
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						gotoxy(40, 15);
+						cout << "###########방생성 실패#############";
+						Sleep(500);
+						gotoxy(40, 15);
+						cout << "                                   ";
+						Sleep(500);
+					}
+					continue;
+				}
 			}
-		} 
+		}
 		//else if (Linfo.GetLobbyTxtNum() == 3)
 		//{
 		//	if (key == SPACE || key == ENTER)
@@ -63,11 +85,54 @@ const int Lobby::LobbyMain(SOCKET sock)
 		//그러면 얘를 3으로 해야지 ㅅㅂ 안그러면 lobbyTxtNum 이 3이안되잖아
 		else if (Linfo.GetLobbyTxtNum() == 1) //logoout
 		{
-			if (key == SPACE || key == ENTER) return 4;
+			if (key == SPACE || key == ENTER)
+			{
+				if (req_LogoutClient())
+				{
+					LogoutFlag = true;
+					return 4;
+
+				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						gotoxy(40, 15);
+						cout << "###########로그아웃 실패#############";
+						Sleep(500);
+						gotoxy(40, 15);
+						cout << "                                     ";
+						Sleep(500);
+					}
+					continue;
+				}
+			}
 		}
 		else if (Linfo.GetLobbyTxtNum() == 2)// exit
 		{
-			if (key == SPACE || key == ENTER) return 2;
+			if (key == SPACE || key == ENTER)
+			{
+				if (req_ExitClient())
+				{
+					ExitFlag = true;
+					return 2;
+
+				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						gotoxy(40, 15);
+						cout << "###########게임종료 실패#############";
+						Sleep(500);
+						gotoxy(40, 15);
+						cout << "                                     ";
+						Sleep(500);
+					}
+					continue;
+				}
+
+			}
 		}
 	}
 
@@ -120,14 +185,30 @@ void Lobby::setSock(SOCKET sock)
 }
 bool Lobby::req_CreateRoom()
 {
-	char recvBuf[3] = "";
 	send(sock, "@R", 2, 0);
-	recv(sock, recvBuf, 3, 0);
-	//실패(@R0) or 성공(@R1)
-	gotoxy(5, 30); cout << "req_createRoom: "<<recvBuf;
-	if (recvBuf[2] == '1')return true;
-	else return false;
-	
+	cout << "방생성요청보냄" << endl;
+	DWORD ret;
+	ret = WaitForSingleObject(hEventForRequest,3000);
+	if (ret == WAIT_TIMEOUT) return false;
+	else return true;
+}
+bool Lobby::req_LogoutClient()
+{
+	send(sock, "@L", 2, 0);
+	cout << "로그아웃요청보냄" << endl;
+	DWORD ret;
+	ret = WaitForSingleObject(hEventForRequest, 3000);
+	if (ret == WAIT_TIMEOUT) return false;
+	else return true;
+}
+bool Lobby::req_ExitClient()
+{
+	send(sock, "@G", 2, 0);
+	cout << "게임종료요청보냄" << endl;
+	DWORD ret;
+	ret = WaitForSingleObject(hEventForRequest, 3000);
+	if (ret == WAIT_TIMEOUT) return false;
+	else return true;
 }
 void Lobby::PrintWaitionRoomList(char *buf)
 {//[방개수]_[No.[방번호] 방이름]_[방이름]_[방이름]
@@ -141,7 +222,7 @@ void Lobby::PrintWaitionRoomList(char *buf)
 	}
 	else
 	{//방이 있는경우
-		
+
 		tmp = strtok(buf, "_");
 		iRoomCount = atoi(tmp);
 		Linfo.WaitingRoomCount = iRoomCount;
@@ -152,7 +233,7 @@ void Lobby::PrintWaitionRoomList(char *buf)
 			cout << tmp << endl;
 		}
 	}
-	
+
 
 }
 
@@ -169,4 +250,66 @@ void Lobby::PrintLobbyListCheck(int WaitingRoomListPointNumber)
 {
 	gotoxy(7, 5 + WaitingRoomListPointNumber);
 	cout << "☞ ";
+}
+
+
+unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
+{
+	ThreadData td = *((ThreadData*)arg);
+	char recvMsg[BUF_SIZE] = "";
+	char *tmp_tok;
+	int itmp_RoomNum;
+	int strLen;
+	//ClientMode >= 1(lobby상태) 일때 넘어가도록 이벤트 처리 WaitSingleObject(hEvent,INFINITE);
+	//그럼 로그아웃할때 스레드도 종료시켜줘야겠지
+
+	while (!ExitFlag && !LogoutFlag)
+	{
+		strLen = recv(td.sock, recvMsg, BUF_SIZE - 1, 0);	//이 부분에 send스레드에서 종료플레그가 켜지면 이벤트 처리를....
+		//방법2. 소캣을 넌블로킹으로 만들기 (ioctlsocket)
+		if (strLen == -1)
+			return -1;
+
+		if (recvMsg[0] == '!')
+		{
+			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
+			//!0 이면 방이없다는 말임
+			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
+			if (recvMsg[1] == '0')td.lobby->PrintWaitionRoomList("0");
+			else td.lobby->PrintWaitionRoomList(recvMsg + 1);
+		}
+		else if (recvMsg[0] == '/')
+		{//채팅메시지 전용
+
+		}
+		else if (recvMsg[0] == '@')	//리퀘스트(req) 방만들기, 종료(로그아웃)요청완료 등 메시지 받는곳
+		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
+			if (recvMsg[1] == 'R')
+			{
+				if (recvMsg[2] == '1')
+				{
+					SetEvent(hEventForRequest);
+				}
+			}
+			else if (recvMsg[1] == 'L')//로그아웃요청완료(@L1)
+			{
+				if (recvMsg[2] == '1')
+				{
+					SetEvent(hEventForRequest);
+					LogoutFlag = true;
+				}
+			}
+			else if (recvMsg[1] == 'G')//종료요청완료(@E1)
+			{
+				if (recvMsg[2] == '1')
+				{
+					SetEvent(hEventForRequest);
+					ExitFlag = true;
+				}
+			}
+		}
+		else { cout << "옳지않은 메세지: " << recvMsg << endl; Sleep(100); }
+	}
+	cout << "exitRecvMsgThread" << endl;
+	return 0;
 }
