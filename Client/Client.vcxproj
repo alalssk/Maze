@@ -152,6 +152,8 @@
     <ClInclude Include="LoginMainInfo.h" />
     <ClInclude Include="RecvThreadClass.h" />
     <ClInclude Include="UserInfo.h" />
+    <ClInclude Include="WaitingRoom.h" />
+    <ClInclude Include="WaitingRoomInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
@@ -166,6 +168,8 @@
     </ClCompile>
     <ClCompile Include="RecvThreadClass.cpp" />
     <ClCompile Include="UserInfo.cpp" />
+    <ClCompile Include="WaitingRoom.cpp" />
+    <ClCompile Include="WaitingRoomInfo.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

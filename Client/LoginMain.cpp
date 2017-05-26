@@ -304,5 +304,5 @@ void LoginMain::PrintConnectErrorMsg(int ConnetErrorCode)//0이면 id pass, 1이면 
 
 void LoginMain::ConnectServer()
 {
-	toServer.setupSock();
+	while(!toServer.setupSock())	{}
 }

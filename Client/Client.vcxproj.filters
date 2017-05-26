@@ -42,6 +42,12 @@
     <ClInclude Include="RecvThreadClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WaitingRoomInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WaitingRoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -69,6 +75,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RecvThreadClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WaitingRoomInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WaitingRoom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
