@@ -1,8 +1,5 @@
 #include "Lobby.h"
-int Lobby::ClientMode = 0;
-bool Lobby::threadOn = false;//임시
-bool Lobby::ExitFlag = false;
-bool Lobby::LogoutFlag = false;
+
 HANDLE Lobby::hEventForRequest;
 
 Lobby::Lobby()
@@ -13,19 +10,10 @@ Lobby::Lobby()
 Lobby::~Lobby()
 {
 }
-const int Lobby::LobbyMain(SOCKET sock)
+const int Lobby::LobbyMain()
 {
-	if (!threadOn)
-	{
-		setSock(sock);
-		td.sock = sock;
-		td.lobby = this;
-		hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
-		hRcvThread = (HANDLE)_beginthreadex(NULL, 0, &RecvMsg, (void*)&td, 0, NULL);
-		threadOn = true;
-		
-	}
 
+	hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
 	ClearXY();
 	PrintLobbyListBox();
 	GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
@@ -102,8 +90,7 @@ const int Lobby::LobbyMain(SOCKET sock)
 			{
 				if (req_LogoutClient())
 				{
-					LogoutFlag = true;
-					threadOn = false;
+
 					return 4;
 
 				}
@@ -128,8 +115,7 @@ const int Lobby::LobbyMain(SOCKET sock)
 			{
 				if (req_ExitClient())
 				{
-					ExitFlag = true;
-					threadOn = false;
+
 					return 2;
 
 				}
@@ -250,7 +236,7 @@ void Lobby::GetWaitionRoomList(char *buf)
 	int iRoomCount;
 	
 	memset(Linfo.WaitingRoomList, 0, sizeof(Linfo.WaitingRoomList));//2차원배열(tmp[max][max]) 초기화하는 법 확실하게 테스트 하자
-																	//그냥 memset(tmp,0,sizeof(tmp)) 해도 2차원 다 초기화 된다.
+																	//memset(tmp,0,sizeof(tmp)) 해도 2차원 다 초기화 된다.
 	if (buf[0] == '0')
 	{//방이없음
 		Linfo.WaitingRoomListNum = 0;
@@ -289,72 +275,3 @@ void Lobby::PrintLobbyListCheck(int WaitingRoomListPointNumber)
 }
 
 
-unsigned WINAPI Lobby::RecvMsg(void * arg)   // read thread main
-{
-	ThreadData td = *((ThreadData*)arg);
-	char recvMsg[BUF_SIZE] = "";
-	char *tmp_tok;
-	int itmp_RoomNum;
-	int strLen;
-	//ClientMode >= 1(lobby상태) 일때 넘어가도록 이벤트 처리 WaitSingleObject(hEvent,INFINITE);
-	//그럼 로그아웃할때 스레드도 종료시켜줘야겠지
-
-	while (!ExitFlag && !LogoutFlag)
-	{
-		strLen = recv(td.sock, recvMsg, BUF_SIZE - 1, 0);	
-		//이 부분에 send스레드에서 종료플레그가 켜지면 이벤트 처리를....
-		//방법2. 소캣을 넌블로킹으로 만들기 (ioctlsocket)
-		if (strLen == -1)
-			return -1;
-
-		if (recvMsg[0] == '!')
-		{
-			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
-			//!0 이면 방이없다는 말임
-			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
-			if (recvMsg[1] == '0')td.lobby->GetWaitionRoomList("0");
-			else td.lobby->GetWaitionRoomList(recvMsg + 1);
-			memset(recvMsg, 0, sizeof(recvMsg));
-		}
-		else if (recvMsg[0] == '/')
-		{//채팅메시지 전용
-
-		}
-		else if (recvMsg[0] == '@')	//리퀘스트(req) 방만들기, 종료(로그아웃)요청완료 등 메시지 받는곳
-		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
-			if (recvMsg[1] == 'R')
-			{
-				if (recvMsg[2] == '1')
-				{
-					SetEvent(hEventForRequest);
-				}
-			}
-			else if (recvMsg[1] == 'r')//방요청(시작시)
-			{
-				if (recvMsg[2] == '1')
-				{
-					SetEvent(hEventForRequest);
-				}
-			}
-			else if (recvMsg[1] == 'L')//로그아웃요청완료(@L1)
-			{
-				if (recvMsg[2] == '1')
-				{
-					SetEvent(hEventForRequest);
-					LogoutFlag = true;
-				}
-			}
-			else if (recvMsg[1] == 'G')//종료요청완료(@G1)
-			{
-				if (recvMsg[2] == '1')
-				{
-					SetEvent(hEventForRequest);
-					ExitFlag = true;
-				}
-			}
-		}
-		else {  }
-	}
-	cout << "exitRecvMsgThread" << endl;
-	return 0;
-}

@@ -17,10 +17,7 @@ LoginMain::~LoginMain()
 }
 int LoginMain::LoginMainStart()
 {
-	if (!toServer.setupSock())
-	{
-		return 0;
-	}
+
 	ClearXY();
 	ReadLoginTitleTxt();
 	PrintLoginTitleTxt();
@@ -303,4 +300,9 @@ void LoginMain::PrintConnectErrorMsg(int ConnetErrorCode)//0이면 id pass, 1이면 
 	gotoxy(32, 29);		txtLineClear();
 	PrintLoginMainTxtList();
 	loginTxtCheckPrint(6);
+}
+
+void LoginMain::ConnectServer()
+{
+	toServer.setupSock();
 }

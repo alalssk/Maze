@@ -8,6 +8,10 @@ LobbyInfo::LobbyInfo() :LobbyTxtNum(0), LobbyListPointNum(0), LobbyFlag(false), 
 
 LobbyInfo::~LobbyInfo()
 {
+	LobbyTxtNum=0;
+	LobbyFlag=0;
+	LobbyListPointNum = 0;
+
 }
 
 const int LobbyInfo::GetLobbyTxtNum()

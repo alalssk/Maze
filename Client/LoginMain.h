@@ -16,6 +16,7 @@ private:
 public:
 	LoginMain();
 	~LoginMain();
+	void ConnectServer();
 	int LoginMainStart();
 	ConnectToServer toServer;
 private:

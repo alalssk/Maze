@@ -9,6 +9,13 @@ LoginMainInfo::LoginMainInfo() :LoginArrNum(0), serverNum(0), inputIdSz(0), inpu
 
 LoginMainInfo::~LoginMainInfo()
 {
+
+	inputPassSz = 0;
+	inputIdSz = 0;
+	LoginArrNum = 0;
+	serverNum = 0;
+	memset(userID, 0, sizeof(userID));
+	memset(userPass, 0, sizeof(userPass));
 }
 /*login & serve선택 변수 관련*/
 void LoginMainInfo::setLoginArrPlus()

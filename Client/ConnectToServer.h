@@ -22,7 +22,7 @@ private:
 
 public:
 	ConnectToServer();
-	~ConnectToServer();
+	 ~ConnectToServer();
 
 	bool setupSock();//WSAStartup ~ connect 까지 나중에 서버IP 선택or입력 할수있게 변경
 	void CleanupSock();

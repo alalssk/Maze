@@ -13,7 +13,7 @@ class LobbyInfo
 public:
 	
 	LobbyInfo();
-	virtual ~LobbyInfo();
+	~LobbyInfo();
 
 	int WaitingRoomListNum;//현재 방 개수
 	char WaitingRoomList[9999][50];

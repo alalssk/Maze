@@ -150,6 +150,7 @@
     <ClInclude Include="LobbyInfo.h" />
     <ClInclude Include="LoginMain.h" />
     <ClInclude Include="LoginMainInfo.h" />
+    <ClInclude Include="RecvThreadClass.h" />
     <ClInclude Include="UserInfo.h" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +164,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="RecvThreadClass.cpp" />
     <ClCompile Include="UserInfo.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

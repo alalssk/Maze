@@ -14,6 +14,7 @@ void ConnectToServer::CleanupSock()
 {
 	WSACleanup();
 	closesocket(Sock);
+	
 }
 bool ConnectToServer::setupSock()
 {
