@@ -12,7 +12,7 @@ using namespace std;
 #define RIGHT 0x4d // 77
 #define BACK_SPACE 0x08
 #define SPACE 0x20 //32
-#define ENTER 0x0a
+#define ENTER 0x0d //13
 
 class grideXY
 {

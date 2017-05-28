@@ -68,7 +68,7 @@ int LoginMainInfo::cInputUserID(char key)
 		userID[getUserIdSz()] = key;
 		inputIdSz++;
 	}
-	else if (key == 8)//backspace
+	else if (key == BACK_SPACE)//backspace
 	{
 		inputIdSz--;
 		memset(userID + getUserIdSz(), 0, sizeof(char));
@@ -105,7 +105,7 @@ int LoginMainInfo::cInputUserPass(char key)
 		userPass[getUserPassSz()] = key;
 		inputPassSz++;
 	}
-	else if (key == 8)//backspace
+	else if (key == BACK_SPACE)//backspace
 	{
 		inputPassSz--;
 		memset(userPass + getUserPassSz(), 0, sizeof(char));

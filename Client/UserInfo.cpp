@@ -2,7 +2,7 @@
 
 
 
-UserInfo::UserInfo()
+UserInfo::UserInfo() :RoomState(false)
 {
 	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
 }
@@ -11,7 +11,10 @@ UserInfo::UserInfo()
 UserInfo::~UserInfo()
 {
 }
-
+UserInfo UserInfo::getUserInfoClass()
+{
+	return *this;
+}
 bool UserInfo::setID(char *id)
 {
 	if (strlen(id) > USER_ID_SIZE)
@@ -23,7 +26,10 @@ bool UserInfo::setID(char *id)
 		strcpy(this->id, id);
 		return true;
 	}
-	
+}
+char* UserInfo::getID()
+{
+	return id;
 }
 bool UserInfo::setPassword(char *pass)
 {
@@ -36,6 +42,10 @@ bool UserInfo::setPassword(char *pass)
 		strcpy(this->password, pass);
 		return true;
 	}
+}
+char* UserInfo::getPassword()
+{
+	return password;
 }
 char* UserInfo::conv_ID_Password()
 {
@@ -50,4 +60,23 @@ void UserInfo::initUserInfo()
 	memset(id, 0, sizeof(id));
 	memset(password, 0, sizeof(password));
 	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
+}
+void UserInfo::setSocket(SOCKET sock)
+{
+	this->sock = sock;
+}
+SOCKET UserInfo::getSocket()
+{
+	return sock;
+}
+void UserInfo::setWaitingRoomData(char* input)
+{//规锅龋_规力格
+	int iRoomNum;
+	char *tmp;
+	tmp = strtok(input, "_");
+	iRoomNum = atoi(tmp);
+
+	wData.RoomNum = iRoomNum;
+	tmp = strtok(NULL, "_");
+	strcpy(wData.RoomName, tmp);
 }

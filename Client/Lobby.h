@@ -1,6 +1,7 @@
 #pragma once
 
 #include"LobbyInfo.h"
+#include"UserInfo.h"
 #include<Windows.h>
 #include<process.h>
 #define BUF_SIZE 1024
@@ -10,16 +11,8 @@ class Lobby :protected grideXY
 	LobbyInfo Linfo;
 	SOCKET sock;
 
-	/*스레드전용*/
 
-
-
-
-
-
-
-
-	/*스레드전용*/
+	UserInfo *user;
 
 	void PrintLobbyListBox();
 	void AllClearPrintLobbyTxtBox();
@@ -33,7 +26,7 @@ class Lobby :protected grideXY
 	bool req_ExitClient();
 	bool req_LogoutClient();
 	bool req_GetWaitingRoom();
-
+	void setSock(SOCKET sock);
 
 	void PrintWaitionRoomList();//얘는 ConnectToServer의 Recv쓰레드 안에서만 호출함
 public:
@@ -42,7 +35,8 @@ public:
 	void GetWaitionRoomList(char *);
 	static HANDLE hEventForRequest;
 	const int LobbyMain();
-	void setSock(SOCKET sock);
+	void setUserInfo(UserInfo *user);
+
 
 
 };

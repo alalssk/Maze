@@ -229,8 +229,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						{//방 삭제할때도 보내줘야함
 							//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
 
-							cout << "방 생성완료" << endl;
-							send(sock, "@R1", 3, 0);
+							//cout << "방 생성완료" << endl;
+							//send(sock, "@R1", 3, 0); -----> CreateRoomFunc 함수내부에서 완료패킷보냄
 							SendWaitingRoomList(shareData);
 						}
 						else 
@@ -435,6 +435,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 	*UserCount --> max=3
 	*/
 	char tmpRoomName[40] = "";
+	char CreateRoomSendMsg[100] = "";
 	list<CLIENT_DATA>::iterator iter;
 	iter = lpComp->Clients.begin();
 	while (iter != lpComp->Clients.end())
@@ -443,6 +444,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 		{
 			if (iter->MyRoom == 0)
 			{
+				
 				sprintf(tmpRoomName, "[%s]님의 방입니다.", iter->name);
 				strcpy(room.chatRoomName, tmpRoomName);
 				room.ChatRoomNum = TotalCreateRoomCount + 1;
@@ -457,6 +459,12 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				lpComp->ChatRoomList.push_back(room);
 				TotalCreateRoomCount++;
 				LeaveCriticalSection(&cs);//cs
+				//방 만든놈한테만 방정보 전송
+				
+				sprintf(CreateRoomSendMsg, "@R1_%d_%s", room.ChatRoomNum, room.chatRoomName);
+				send(sock, CreateRoomSendMsg, strlen(CreateRoomSendMsg), 0);
+				cout << "방 생성완료>>";
+				cout << CreateRoomSendMsg <<"전송 성공"<< endl;
 				return true;
 			}
 			else

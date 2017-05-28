@@ -1,5 +1,4 @@
 #pragma once
-#include"grideXY.h"
 #include"LoginMainInfo.h"
 #include"UserInfo.h"
 #include"ConnectToServer.h"
@@ -18,10 +17,11 @@ public:
 	~LoginMain();
 	void ConnectServer();
 	int LoginMainStart();
+	void setUserInfo(UserInfo*);
 	ConnectToServer toServer;
 private:
 	LoginMainInfo lf;
-	UserInfo user;
+	UserInfo *user;
 	int ReadLoginTitleTxt(); // 로그인화면에 출력할 택스트 파일 읽기	
 
 	void PrintLoginTitleTxt();//로그인화면에 불러온 텍스트 파일 출력

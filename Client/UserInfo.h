@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include<Windows.h>
 /*User Infomation*/
 #define USER_ID_SIZE 13
 #define USER_PASS_SIZE 20
@@ -10,14 +11,39 @@ class UserInfo
 	char id[USER_ID_SIZE];
 	char password[USER_PASS_SIZE];
 	char userID_Password_for_send[USER_ID_SIZE + USER_PASS_SIZE+1];
+	int WinCount;
+
+	SOCKET sock;
+	int state;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
+
+	typedef struct
+	{
+		int RoomNum;
+		char RoomName[40];
+		bool state[3];
+		char UserName[3][20];
+		int winCount[3];
+		int ConnectUserNum;
+	}WaitingRoom_Data;
+	bool RoomState;//방없으면 false
+	WaitingRoom_Data wData;
+
+	
+
 
 public:
 	UserInfo();
 	~UserInfo();
 	bool setID(char*);
+	char* getID();
 	bool setPassword(char*);
+	char* getPassword();
+	void setSocket(SOCKET sock);
+	SOCKET getSocket();
+	UserInfo getUserInfoClass();
 	char* conv_ID_Password();
 	void initUserInfo();
+	void setWaitingRoomData(char*);
 
 
 };

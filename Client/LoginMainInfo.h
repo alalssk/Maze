@@ -1,5 +1,7 @@
 #pragma once
 #include<iostream>
+#include"grideXY.h"
+
 #define USER_ID_SIZE 20//before 13
 #define USER_PASS_SIZE 20
 class LoginMainInfo

@@ -23,6 +23,10 @@ void RecvThreadClass::StartThread()
 	}
 
 }
+void RecvThreadClass::setUserInfo(UserInfo* input_user)
+{
+	tData.user = input_user;
+}
 unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 {
 	ThreadData tData = *((ThreadData*)arg);
@@ -60,6 +64,11 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (recvMsg[2] == '1')
 				{
+					////////////////
+					//만들었으니까 방정보를 받아와야겠지
+					//@R1_[방번호]_[방제목]
+					//받는거 확인
+					tData.user->setWaitingRoomData(recvMsg+4); //[방번호]_[방제목]
 					SetEvent(tData.lobby->hEventForRequest);
 				}
 			}
@@ -67,6 +76,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (recvMsg[2] == '1')
 				{
+
 					SetEvent(tData.lobby->hEventForRequest);
 				}
 			}

@@ -12,7 +12,7 @@ Lobby::~Lobby()
 }
 const int Lobby::LobbyMain()
 {
-
+	sock = user->getSocket();
 	hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
 	ClearXY();
 	PrintLobbyListBox();
@@ -179,7 +179,10 @@ void Lobby::initRoomListCheck()
 	}
 
 }
-
+void Lobby::setUserInfo(UserInfo *user)
+{
+	this->user = user;
+}
 void Lobby::setSock(SOCKET sock)
 {
 	this->sock = sock;

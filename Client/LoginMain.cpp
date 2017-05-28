@@ -36,6 +36,10 @@ int LoginMain::LoginMainStart()
 		return 1;
 	}
 }
+void LoginMain::setUserInfo(UserInfo *input_user)
+{
+	user =input_user;
+}
 int LoginMain::ReadLoginTitleTxt()//x:57, y:18
 {
 	char buf[X_LOGIN_TXT_SIZE + 1];
@@ -196,6 +200,9 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 			sprintf(send_id_pass, "%s_%s", lf.getUserId(), lf.getUserPass());
 			if (toServer.StartConnect(send_id_pass))
 			{
+				user->setID(lf.getUserId());
+				user->setPassword(lf.getUserPass());
+				user->setSocket(toServer.getSocket());
 				return 1;
 			}
 			else

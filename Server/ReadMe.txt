@@ -60,3 +60,9 @@
 
 	0526 virtual 소멸자는 상속관계가 아닐떄는 쓸필요없음 
 	ex) ~LoginMain 이 호출되면 LoginMain클래스와 상속관계가 아닌 LoginMainInfo, ConnectToServer의 소멸자도 같이호출됨 
+
+
+
+	0528 >> 방만들었을떄 방정보를 서버로부터 받고 userInfo에 저장하는 것 까지 해놨음
+	이제 해야할 것은 CreateRoom 완료 패킷을 받으면(이미 받은 상태) WaitingRoomMain으로 넘어가는 것 구현 할 차례임.
+	ㄴ Client.cpp 의 CREATE_ROOM ㅂ분
