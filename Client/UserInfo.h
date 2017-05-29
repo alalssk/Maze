@@ -16,19 +16,10 @@ class UserInfo
 	SOCKET sock;
 	int state;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
 
-	typedef struct
-	{
-		int RoomNum;
-		char RoomName[40];
-		bool state[3];
-		char UserName[3][20];
-		int winCount[3];
-		int ConnectUserNum;
-	}WaitingRoom_Data;
-	bool RoomState;//방없으면 false
-	WaitingRoom_Data wData;
 
-	
+
+	bool RoomState;//방없으면 false
+
 
 
 public:
@@ -43,7 +34,21 @@ public:
 	UserInfo getUserInfoClass();
 	char* conv_ID_Password();
 	void initUserInfo();
-	void setWaitingRoomData(char*);
+	void setWaitingRoomData(char*);//ChangeRoomState();
+	bool ChangeRoomState();
+	bool getRoomState();
 
+	typedef struct RoomData
+	{
+		int RoomNum;
+		char RoomName[40];
+		bool state[3];
+		char UserName[3][20];
+		int winCount[3];
+		int ConnectUserNum;
+	}WaitingRoom_Data;
+	WaitingRoom_Data wData;
+
+	void ExitWaitingRoom();
 
 };

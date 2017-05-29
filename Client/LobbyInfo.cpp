@@ -57,3 +57,7 @@ int LobbyInfo::GetLobbyListPointNumber()
 {
 	return this->LobbyListPointNum;
 }
+void LobbyInfo::initLobbyListPointNumber()
+{
+	LobbyListPointNum = 0;
+}

@@ -1,5 +1,5 @@
 #include "WaitingRoom.h"
-
+HANDLE WaitingRoom::hWaitingRoomEventForRequest;
 
 WaitingRoom::WaitingRoom()
 {
@@ -15,11 +15,13 @@ void WaitingRoom::setUserInfo(UserInfo *input_user)
 }
 int WaitingRoom::WatingRoomMain()
 {
+	hWaitingRoomEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
 	ClearXY();
+	Sleep(500);
 	sock = user->getSocket();
 	//user.setUserID("alalssk");/*###임시 채팅로그 만드는중*/
 	gotoxy(5, 3);	cout << " No. " << 1234567;//gotoxy(5+5,3); cout<<RoomNum;
-	gotoxy(5 + 15, 3); cout << "Name: "<< " 방제목방제목방제목";
+	gotoxy(5 + 15, 3); cout << "Name: " << " 방제목방제목방제목";
 	GrideBox(5, 4, 3, 18);//PrintUserListBox
 	PrintUserList();
 	GrideBox(5, 9, 20, 18);//PrintChatBox
@@ -34,11 +36,29 @@ int WaitingRoom::WatingRoomMain()
 		WRinfo.SetWaitingRoomFlag(key);//왼쪽 오른쪽 구분(메뉴선택, 채팅)
 		if (WRinfo.GetWaitingRoomFlag() == false)
 		{//메뉴선택부분
-			if (key == ENTER)
+			if (key == ENTER || key == SPACE)
 			{	//종료부분 방만 나가는걸로 게임종료는 로비랑 로그인 화면에서만
 				//@E_[방번호]_[ID]
-				if (WRinfo.GetWaitingRoomTxtNum() == 2)break;
-				
+				if (WRinfo.GetWaitingRoomTxtNum() == 2)//exit room
+				{
+
+					sprintf(inputstr, "@E_%d_%s", user->wData.RoomNum, user->getID());
+					send(sock, inputstr, strlen(inputstr)+1, 0);
+					memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
+					if (WaitForSingleObject(hWaitingRoomEventForRequest, 5000) == WAIT_TIMEOUT)continue;
+					else
+					{
+						//방정보 변경 >> 방 나가는거니까 아얘 방정보 초기화시켜버림
+						user->ExitWaitingRoom();
+						break;
+					}
+
+				}
+				else if (WRinfo.GetWaitingRoomTxtNum() == 1)//게임시작버튼 - 방장만 누를수 있게
+				{
+
+				}
+
 			}
 			else
 			{
@@ -47,7 +67,7 @@ int WaitingRoom::WatingRoomMain()
 
 				PrintButton();
 			}
-			
+
 		}
 		else
 		{//채팅부분 구현
@@ -59,8 +79,8 @@ int WaitingRoom::WatingRoomMain()
 				//여기선 채팅을 버서로 보내기만하고 inputstr이랑 sz초기화해준다
 				//채팅 출력과  채팅창 초기화는 Recv스레드에서 할것임
 
-				InputChatLog("alalssk", inputstr);
-				memset(inputstr,0,sizeof(inputstr)); inputstrSz = 0;
+				InputChatLog(user->getID(), inputstr);
+				memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
 				initChatListBox();//채팅창 초기화
 				PrintChatLogList();//출력
 				gotoxy(7, 28);

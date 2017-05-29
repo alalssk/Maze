@@ -7,7 +7,7 @@ using CHAT_LOG = pair<string, string>;//name chat
 class WaitingRoom :protected grideXY
 {
 public:
-
+	static HANDLE hWaitingRoomEventForRequest;
 	//void req_GetWaitingRoomInfo();//방정보를 요청하고 응답은 recv스레드에서 받아 userInfo의 방정보에 넣는다
 	//void req_GetWaitingRoomUserInfo();
 	//void req_ChattingSendToServer(string chat);

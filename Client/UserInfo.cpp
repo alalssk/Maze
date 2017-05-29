@@ -69,7 +69,7 @@ SOCKET UserInfo::getSocket()
 {
 	return sock;
 }
-void UserInfo::setWaitingRoomData(char* input)
+void UserInfo::setWaitingRoomData(char* input)//ChangeRoomState();
 {//规锅龋_规力格
 	int iRoomNum;
 	char *tmp;
@@ -79,4 +79,28 @@ void UserInfo::setWaitingRoomData(char* input)
 	wData.RoomNum = iRoomNum;
 	tmp = strtok(NULL, "_");
 	strcpy(wData.RoomName, tmp);
+	ChangeRoomState();
+}
+bool UserInfo::ChangeRoomState()
+{
+	if (RoomState) RoomState = false;
+	else RoomState = true;
+	return RoomState;
+}
+bool UserInfo::getRoomState()
+{
+	return this->RoomState;
+}
+
+void UserInfo::ExitWaitingRoom()
+{
+	wData.RoomNum = 0;
+	memset(wData.RoomName, 0, sizeof(wData.RoomName));
+	memset(wData.state, 0, sizeof(wData.state));
+	memset(wData.UserName, 0, sizeof(wData.UserName));
+	memset(wData.winCount, 0, sizeof(wData.winCount));
+	wData.ConnectUserNum = 0;
+
+	ChangeRoomState();
+
 }

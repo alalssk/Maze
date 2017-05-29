@@ -1,6 +1,6 @@
 #include "RecvThreadClass.h"
 
-int RecvThreadClass::ClientMode = 0;
+int RecvThreadClass::ClientMode = 0;//로그인화면(0), 로비(1), 대기방(2), 게임중(3);
 bool RecvThreadClass::threadOn = false;//임시
 bool RecvThreadClass::ExitFlag = false;
 bool RecvThreadClass::LogoutFlag = false;
@@ -45,13 +45,14 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 		if (strLen == -1)
 			return -1;
 
-		if (recvMsg[0] == '!')
+		if (recvMsg[0] == '!' && ClientMode == 1)
 		{
 			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
 			//!0 이면 방이없다는 말임
 			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
 			if (recvMsg[1] == '0')tData.lobby->GetWaitionRoomList("0");
 			else tData.lobby->GetWaitionRoomList(recvMsg + 1);
+
 			memset(recvMsg, 0, sizeof(recvMsg));
 		}
 		else if (recvMsg[0] == '/')
@@ -62,14 +63,23 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
 			if (recvMsg[1] == 'R')
 			{
-				if (recvMsg[2] == '1')
+				if (recvMsg[2] == '1' && ClientMode == 1)
 				{
 					////////////////
 					//만들었으니까 방정보를 받아와야겠지
 					//@R1_[방번호]_[방제목]
 					//받는거 확인
-					tData.user->setWaitingRoomData(recvMsg+4); //[방번호]_[방제목]
-					SetEvent(tData.lobby->hEventForRequest);
+					if (!tData.user->getRoomState())//방이없는경우(RoomState==false)
+					{
+						tData.user->setWaitingRoomData(recvMsg + 4); //[방번호]_[방제목]
+						ClientMode = 2;
+						SetEvent(tData.lobby->hLobbyEventForRequest);
+					}
+					else
+					{
+						cout << "[방생성 실패] 이미 방에 접속중입니다" << endl;
+					}
+
 				}
 			}
 			else if (recvMsg[1] == 'r')//방요청(시작시)
@@ -77,14 +87,14 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				if (recvMsg[2] == '1')
 				{
 
-					SetEvent(tData.lobby->hEventForRequest);
+					SetEvent(tData.lobby->hLobbyEventForRequest);
 				}
 			}
 			else if (recvMsg[1] == 'L')//로그아웃요청완료(@L1)
 			{
 				if (recvMsg[2] == '1')
 				{
-					SetEvent(tData.lobby->hEventForRequest);
+					SetEvent(tData.lobby->hLobbyEventForRequest);
 					LogoutFlag = true;
 				}
 			}
@@ -92,8 +102,31 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (recvMsg[2] == '1')
 				{
-					SetEvent(tData.lobby->hEventForRequest);
+					SetEvent(tData.lobby->hLobbyEventForRequest);
 					ExitFlag = true;
+				}
+			}
+			else if (recvMsg[1] == 'E')//방나가기요청 완료
+			{
+				if (recvMsg[2] == '1')
+				{
+					if (ClientMode == 2)//대기방상태일때만
+					{
+						ClientMode = 1;
+						SetEvent(tData.wRoom->hWaitingRoomEventForRequest);
+					}
+				}
+			}
+			else if (recvMsg[1] == 'J')//방입장요청성공
+			{
+				if (recvMsg[2] == '1')
+				{
+					if (ClientMode == 1)//로비상태일떄만
+					{
+						tData.user->setWaitingRoomData(recvMsg + 4);
+						ClientMode = 2;
+						SetEvent(tData.lobby->hLobbyEventForRequest);
+					}
 				}
 			}
 		}

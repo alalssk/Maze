@@ -1,6 +1,6 @@
 #include "Lobby.h"
 
-HANDLE Lobby::hEventForRequest;
+HANDLE Lobby::hLobbyEventForRequest;
 
 Lobby::Lobby()
 {
@@ -13,7 +13,7 @@ Lobby::~Lobby()
 const int Lobby::LobbyMain()
 {
 	sock = user->getSocket();
-	hEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
+	hLobbyEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
 	ClearXY();
 	PrintLobbyListBox();
 	GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
@@ -29,112 +29,132 @@ const int Lobby::LobbyMain()
 		
 		if (Linfo.GetLobbyFlag() == false)
 		{
+			if (key == SPACE || key == ENTER)
+			{//메뉴선택확인
+				if (Linfo.GetLobbyTxtNum() == 0) //방만들기
+				{
+					if (req_CreateRoom())return 0;
+					else
+					{
+						for (int i = 0; i < 3; i++)
+						{
+							gotoxy(40, 15);
+							cout << "###########방생성 실패#############";
+							Sleep(500);
+							gotoxy(40, 15);
+							cout << "                                   ";
+							Sleep(500);
+						}
+						continue;
+					}
+				}
+				else if (Linfo.GetLobbyTxtNum() == 1) //logoout
+				{
+					if (req_LogoutClient())
+					{
 
-			Linfo.SetLobbyTxtNum(key);
-			initRoomListCheck();
-			AllClearPrintLobbyTxtBox();
-			GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
-			//PrintWaitionRoomList();
+						return 4;
 
-			PrintLobbyTxt();
+					}
+					else
+					{
+						for (int i = 0; i < 3; i++)
+						{
+							gotoxy(40, 15);
+							cout << "###########로그아웃 실패#############";
+							Sleep(500);
+							gotoxy(40, 15);
+							cout << "                                     ";
+							Sleep(500);
+						}
+						continue;
+					}
+				}
+				else if (Linfo.GetLobbyTxtNum() == 2)// exit
+				{
+					if (req_ExitClient())
+					{
+
+						return 2;
+
+					}
+					else
+					{
+						for (int i = 0; i < 3; i++)
+						{
+							gotoxy(40, 15);
+							cout << "###########게임종료 실패#############";
+							Sleep(500);
+							gotoxy(40, 15);
+							cout << "                                     ";
+							Sleep(500);
+						}
+						continue;
+					}
+				}
+
+			}
+			else
+			{//메뉴선택(방향키)
+				Linfo.SetLobbyTxtNum(key);
+				initRoomListCheck();
+				AllClearPrintLobbyTxtBox();
+				GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
+				//PrintWaitionRoomList();
+				PrintLobbyTxt();
+			}
 		}
 		else
-		{
+		{//방선택 부분
 
 			//RoomInfoListMain();
+			if (key == SPACE || key == ENTER)
+			{	//WaitingRoomList[LobbyListPointNum] -> 선택 방이름
+				//send는 방번호를 send해야한다
+				//Linfo.WaitingRoomList[]에는 "No.2>>[방이름]" 이런식으로 들어가있으니 방 번호만 빼서 send
+				char * tmp;
+				int iRoomNum;
+				tmp = strtok(Linfo.WaitingRoomList[Linfo.GetLobbyListPointNumber()], ".");
+				tmp = strtok(NULL, ">");
+				iRoomNum = atoi(tmp);
+				if (req_EnterWaitingRoom(iRoomNum))//방입장성공
+				{
+					
+					return 3;
+				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						gotoxy(40, 15);
+						cout << "###########방입장 실패#############";
+						Sleep(500);
+						gotoxy(40, 15);
+						cout << "                                     ";
+						Sleep(500);
+					}
+					continue;
+				}
+				//Linfo.WaitingRoomList[Linfo.GetLobbyListPointNumber()];
+			}
+			else
+			{
+				Linfo.SetLobbyListPointNumber(key);
+				initRoomListCheck();
+				PrintWaitionRoomList();
+				PrintLobbyListCheck(Linfo.GetLobbyListPointNumber());
+
+				AllClearPrintLobbyTxtBox();
+				PrintLobbyTxt();
+			}
+
 			
-			Linfo.SetLobbyListPointNumber(key);
-			initRoomListCheck();
-			PrintWaitionRoomList();
-			PrintLobbyListCheck(Linfo.GetLobbyListPointNumber());
 
-			AllClearPrintLobbyTxtBox();
-			PrintLobbyTxt();
 		}
 
 
 
-		if (Linfo.GetLobbyTxtNum() == 0) //방만들기
-		{
-			if (key == SPACE || key == ENTER)
-			{//[방번호]########의 방
-				if(req_CreateRoom())return 0;
-				else
-				{
-					for (int i = 0; i < 3; i++)
-					{
-						gotoxy(40, 15);
-						cout << "###########방생성 실패#############";
-						Sleep(500);
-						gotoxy(40, 15);
-						cout << "                                   ";
-						Sleep(500);
-					}
-					continue;
-				}
-			}
-		}
-		//else if (Linfo.GetLobbyTxtNum() == 3)
-		//{
-		//	if (key == SPACE || key == ENTER)
-		//	{
-		//		//ClearXY();
 
-		//		return 3; //대기방참가(join)
-		//	}
-		//} 메뉴 지웠음 방 선택으로 입장 가능하게 할거니깐!
-		//그러면 얘를 3으로 해야지 ㅅㅂ 안그러면 lobbyTxtNum 이 3이안되잖아
-		else if (Linfo.GetLobbyTxtNum() == 1) //logoout
-		{
-			if (key == SPACE || key == ENTER)
-			{
-				if (req_LogoutClient())
-				{
-
-					return 4;
-
-				}
-				else
-				{
-					for (int i = 0; i < 3; i++)
-					{
-						gotoxy(40, 15);
-						cout << "###########로그아웃 실패#############";
-						Sleep(500);
-						gotoxy(40, 15);
-						cout << "                                     ";
-						Sleep(500);
-					}
-					continue;
-				}
-			}
-		}
-		else if (Linfo.GetLobbyTxtNum() == 2)// exit
-		{
-			if (key == SPACE || key == ENTER)
-			{
-				if (req_ExitClient())
-				{
-
-					return 2;
-
-				}
-				else
-				{
-					for (int i = 0; i < 3; i++)
-					{
-						gotoxy(40, 15);
-						cout << "###########게임종료 실패#############";
-						Sleep(500);
-						gotoxy(40, 15);
-						cout << "                                     ";
-						Sleep(500);
-					}
-					continue;
-				}
-
-			}
-		}
 	}
 
 }
@@ -191,7 +211,7 @@ bool Lobby::req_GetWaitingRoom()//방요청(시작시)
 {
 	send(sock, "@r", 2, 0);
 	DWORD ret;
-	ret = WaitForSingleObject(hEventForRequest, 3000);
+	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
@@ -200,7 +220,7 @@ bool Lobby::req_CreateRoom()
 	send(sock, "@R", 2, 0);
 	//cout << "방생성요청보냄" << endl;
 	DWORD ret;
-	ret = WaitForSingleObject(hEventForRequest,3000);
+	ret = WaitForSingleObject(hLobbyEventForRequest,3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
@@ -209,7 +229,7 @@ bool Lobby::req_LogoutClient()
 	send(sock, "@L", 2, 0);
 	//cout << "로그아웃요청보냄" << endl;
 	DWORD ret;
-	ret = WaitForSingleObject(hEventForRequest, 3000);
+	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
@@ -218,7 +238,18 @@ bool Lobby::req_ExitClient()
 	send(sock, "@G", 2, 0);
 	//cout << "게임종료요청보냄" << endl;
 	DWORD ret;
-	ret = WaitForSingleObject(hEventForRequest, 3000);
+	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
+	if (ret == WAIT_TIMEOUT) return false;
+	else return true;
+}
+bool Lobby::req_EnterWaitingRoom(int RoomNum)
+{
+	char sendstr[7];//@G_9999
+	sprintf(sendstr, "@J_%d", RoomNum);
+	send(sock, sendstr, 7, 0);
+	//cout << "게임종료요청보냄" << endl;
+	DWORD ret;
+	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
@@ -257,7 +288,7 @@ void Lobby::GetWaitionRoomList(char *buf)
 			
 		}
 	}
-
+	Linfo.initLobbyListPointNumber();
 	PrintWaitionRoomList();
 
 }

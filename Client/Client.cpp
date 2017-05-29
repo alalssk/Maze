@@ -43,6 +43,7 @@ int main()
 		{
 			rThre.LogoutFlag = false;
 			rThre.StartThread();
+			rThre.ClientMode = 1;//Lobby
 			while (!rThre.ExitFlag && !rThre.LogoutFlag)
 			{
 				/*
@@ -59,11 +60,12 @@ int main()
 					wRoom.WatingRoomMain();
 					break;
 				case JOIN_ROOM:
-
+					wRoom.WatingRoomMain();
 					break;
 				case LOGOUT_CODE:
 					rThre.LogoutFlag = true;
 					rThre.threadOn = false;
+					rThre.ClientMode = 0;//loginmain
 					//소캣 해제 필요
 					break;
 				case EXIT_CODE:
