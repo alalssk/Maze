@@ -129,6 +129,14 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 					}
 				}
 			}
+			else if (recvMsg[1] == 'U')
+			{//@U1_[ÀÌ¸§]-½Â¼ö_[ÀÌ¸§-½Â¼ö]
+				if (recvMsg[2] == '1' && ClientMode == 2)
+				{
+					tData.user->setWaitingRoomUserList(recvMsg + 4);
+					tData.wRoom->PrintUserList();
+				}
+			}
 		}
 		else {}
 	}

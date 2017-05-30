@@ -66,17 +66,17 @@ int main()
 					rThre.LogoutFlag = true;
 					rThre.threadOn = false;
 					rThre.ClientMode = 0;//loginmain
+
 					//소캣 해제 필요
 					break;
 				case EXIT_CODE:
 					rThre.ExitFlag = true;
 					rThre.threadOn = false;
 					break;
-
 				}
 			}
 			
-//			lmain.toServer.CleanupSock();
+			//lmain.toServer.CleanupSock();
 			lmain.~LoginMain();
 			Lobby.~Lobby();
 			//

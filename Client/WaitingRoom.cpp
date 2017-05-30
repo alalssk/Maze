@@ -103,10 +103,24 @@ int WaitingRoom::WatingRoomMain()
 
 void WaitingRoom::PrintUserList()
 {
+	Sleep(500);
+	for (int i = 0; i < 3; i++)
+	{//임시 초기화
+		gotoxy(7, 5 + i); cout << "                                         ";
+	}
 	for (int i = 0; i < 3; i++)//MAX user 3
 	{
-		gotoxy(7, 5 + i);
-		cout << "READY!!" << "  ||  " << "DIDIDIDIDIDID" << "  ||  " << 15 << endl;//state || ID || WinCount
+		if (i < user->wData.ConnectUserNum-1)
+		{
+			gotoxy(7, 5 + i); cout << user->wData.UserName[i];
+
+		}
+		else {
+			gotoxy(7, 5 + i); cout << "          초기화                ";
+		}
+
+
+	//	cout << "READY!!" << "  ||  " << "DIDIDIDIDIDID" << "  ||  " << 15 << endl;//state || ID || WinCount
 	}
 }
 void WaitingRoom::PrintButton()

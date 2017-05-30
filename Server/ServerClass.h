@@ -45,6 +45,7 @@ class ServerClass
 		int ChatRoomNum;//방 번호(고유)
 		char chatRoomName[MAX_CHATROOM_SIZE];
 		char ClientsID[3][MAX_NAME_SIZE];
+		SOCKET hClntSock[3];
 		int UserCount;//이 방에 접속중인 user수
 	}ChatRoom, *LPChatRoom;
 
@@ -79,6 +80,7 @@ class ServerClass
 	static const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
 	static const bool ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id);//이 함수는 항상 cs안에있어야함
 	static const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);
+	static const bool SendNewWaitingUserList(list<ChatRoom>::iterator);
 	static void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
 	static bool SendWaitingRoomList(LPShared_DATA lpComp);
 
@@ -100,5 +102,6 @@ public:
 	void Print_UserList();
 	void Print_RoomList();
 	void ExitIOCP();
+	void PrintRoomInfo();
 };
 

@@ -79,12 +79,24 @@ void UserInfo::setWaitingRoomData(char* input)//ChangeRoomState();
 	wData.RoomNum = iRoomNum;
 	tmp = strtok(NULL, "_");
 	strcpy(wData.RoomName, tmp);
-	ChangeRoomState();
+	setRoomState(true);
 }
-bool UserInfo::ChangeRoomState()
+void UserInfo::setWaitingRoomUserList(char* input)
+{//alalssk-5_test-10_
+	char *tmp;
+	int iUserNum = 0;
+	memset(wData.UserName, 0, sizeof(wData.UserName));
+	tmp = strtok(input, "_");
+	while (tmp)
+	{
+		strcpy(wData.UserName[iUserNum++], tmp);
+		tmp = strtok(NULL, "_");
+	}
+	wData.ConnectUserNum = iUserNum;
+}
+bool UserInfo::setRoomState(bool state)
 {
-	if (RoomState) RoomState = false;
-	else RoomState = true;
+	this->RoomState = state;
 	return RoomState;
 }
 bool UserInfo::getRoomState()
@@ -101,6 +113,6 @@ void UserInfo::ExitWaitingRoom()
 	memset(wData.winCount, 0, sizeof(wData.winCount));
 	wData.ConnectUserNum = 0;
 
-	ChangeRoomState();
+	setRoomState(false);
 
 }

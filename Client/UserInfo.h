@@ -35,14 +35,15 @@ public:
 	char* conv_ID_Password();
 	void initUserInfo();
 	void setWaitingRoomData(char*);//ChangeRoomState();
-	bool ChangeRoomState();
+	void setWaitingRoomUserList(char*);
+	bool setRoomState(bool);
 	bool getRoomState();
 
 	typedef struct RoomData
 	{
 		int RoomNum;
 		char RoomName[40];
-		bool state[3];
+		bool state[3];//¿œ¥‹ æ»æ∏
 		char UserName[3][20];
 		int winCount[3];
 		int ConnectUserNum;

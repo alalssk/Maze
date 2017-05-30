@@ -16,11 +16,12 @@ public:
 	~WaitingRoom();
 	//int WatingRoomMain(SOCKET sock);
 	int WatingRoomMain();
+	void PrintUserList();//#유저리스트
 private:
 	bool req_ExitWaitingRoom();//@E_[방번호]_[ID]
 
 	void PrintUserListBox();
-	void PrintUserList();//#유저리스트
+	
 	void PrintButton();
 	void AllClearPrintLobbyTxtBox();
 	WaitingRoomInfo WRinfo;
