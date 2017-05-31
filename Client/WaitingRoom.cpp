@@ -110,7 +110,7 @@ void WaitingRoom::PrintUserList()
 	}
 	for (int i = 0; i < 3; i++)//MAX user 3
 	{
-		if (i < user->wData.ConnectUserNum-1)
+		if (i < user->wData.ConnectUserNum)
 		{
 			gotoxy(7, 5 + i); cout << user->wData.UserName[i];
 

@@ -20,6 +20,7 @@ int main()
 	WaitingRoom wRoom;
 	UserInfo user;
 	int code;
+	user.initUserInfo();
 	lmain.setUserInfo(&user);
 	Lobby.setUserInfo(&user);
 	wRoom.setUserInfo(&user);
@@ -74,7 +75,7 @@ int main()
 					rThre.threadOn = false;
 					break;
 				}
-			}
+			}//end while
 			
 			//lmain.toServer.CleanupSock();
 			lmain.~LoginMain();

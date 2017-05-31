@@ -25,6 +25,7 @@ class UserInfo
 public:
 	UserInfo();
 	~UserInfo();
+	void initUserInfoData();
 	bool setID(char*);
 	char* getID();
 	bool setPassword(char*);
@@ -44,7 +45,7 @@ public:
 		int RoomNum;
 		char RoomName[40];
 		bool state[3];//¿œ¥‹ æ»æ∏
-		char UserName[3][20];
+		char UserName[3][USER_ID_SIZE];
 		int winCount[3];
 		int ConnectUserNum;
 	}WaitingRoom_Data;

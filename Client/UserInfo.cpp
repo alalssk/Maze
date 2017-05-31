@@ -4,12 +4,30 @@
 
 UserInfo::UserInfo() :RoomState(false)
 {
-	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
+
 }
 
 
 UserInfo::~UserInfo()
 {
+}
+void UserInfo::initUserInfoData()
+{
+	memset(id, 0, sizeof(id));
+	memset(password, 0, sizeof(password));
+	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
+	WinCount = 0;
+	sock = NULL;
+	this->state = 0;
+	wData.ConnectUserNum = 0;
+	memset(wData.RoomName, 0, sizeof(wData.RoomName));
+	memset(wData.UserName, 0, sizeof(wData.UserName));
+	wData.RoomNum = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		wData.state[i] = false;
+		wData.winCount[i] = 0;
+	}
 }
 UserInfo UserInfo::getUserInfoClass()
 {
@@ -79,6 +97,13 @@ void UserInfo::setWaitingRoomData(char* input)//ChangeRoomState();
 	wData.RoomNum = iRoomNum;
 	tmp = strtok(NULL, "_");
 	strcpy(wData.RoomName, tmp);
+	if (wData.ConnectUserNum == 0)
+	{
+		strcpy(wData.UserName[0], id);
+		wData.state[0] = true;
+		wData.winCount[0] = 10;//юс╫ц
+		wData.ConnectUserNum = 1;
+	}
 	setRoomState(true);
 }
 void UserInfo::setWaitingRoomUserList(char* input)

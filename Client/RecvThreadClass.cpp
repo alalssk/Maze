@@ -139,6 +139,8 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			}
 		}
 		else {}
+		memset(recvMsg, 0, sizeof(recvMsg));
+
 	}
 	cout << "exitRecvMsgThread" << endl;
 	return 0;
