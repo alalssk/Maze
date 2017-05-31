@@ -310,6 +310,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						cout << "--->(@G1)전송 완료" << endl;
 						CloseClientSock(sock, ioInfo, shareData);
 					}
+				}//end @
+				else if (ioInfo->buffer[0] == '/')
+				{	// recv " /[방번호]_[Id]_[내용] "
+					cout <<"채팅전용 패킷 받았어요: "<< ioInfo->buffer << endl;
+					// send " /1_ID_내용 "
 				}
 				/*WSARecv*/
 				delete ioInfo;
@@ -454,7 +459,7 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 	}
 	closesocket(sock);
 
-	sprintf(tmp, "/[%s] is disconnected...\n", CloseName);
+	sprintf(tmp, "[%s] is disconnected...\n", CloseName);
 	SendMsgFunc(tmp, lpComp, strlen(tmp));
 	cout << tmp;
 	//puts("DisConnect Client!");
@@ -501,6 +506,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				cout << "방 생성완료>>";
 				cout << CreateRoomSendMsg << "전송 성공" << endl;
 				//============================유저리스트 전송부분============================
+				/*이부분은 클라에서 처음 방 만들때 ID등 자기 정보 방에 저장하기 떄문에 굳ㅇ ㅣ보내줄 필요없는듯 나중에 확인해보고 지우자*/
 				memset(CreateRoomSendMsg, 0, sizeof(CreateRoomSendMsg));
 				cout << "================유저리스트 전송부================" << endl;
 				cout << CreateRoomSendMsg << endl;
@@ -678,7 +684,6 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 	}
 	return false;
 }
-
 void ServerClass::Print_UserList()
 {
 	list<CLIENT_DATA>::iterator iter;

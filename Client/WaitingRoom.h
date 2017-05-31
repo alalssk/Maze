@@ -17,6 +17,11 @@ public:
 	//int WatingRoomMain(SOCKET sock);
 	int WatingRoomMain();
 	void PrintUserList();//#유저리스트
+	/*chat*/
+	bool InputChatLog(string name, string chat);
+	void PrintChatLogList();
+	void initChatListBox();
+	/*chat*/
 private:
 	bool req_ExitWaitingRoom();//@E_[방번호]_[ID]
 
@@ -29,9 +34,9 @@ private:
 	UserInfo *user;
 	vector<CHAT_LOG> ChatLog;
 	//UserInfo user;
-	bool InputChatLog(string name, string chat);
-	void PrintChatLogList();
-	void initChatListBox();
+	
+
+	void req_SendMsgToServer(char*);
 
 };
 

@@ -13,6 +13,22 @@ void WaitingRoom::setUserInfo(UserInfo *input_user)
 {
 	user = input_user;
 }
+void WaitingRoom::req_SendMsgToServer(char* msg)
+{//=================== "/[방번호]_[ID]_[내용]
+	char SendMsg[1024] = "";
+	sprintf(SendMsg, "/%d_%s_%s", user->wData.RoomNum, user->getID(), msg);
+	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
+
+	//switch (WaitForSingleObject(hWaitingRoomEventForRequest, 5000))
+	//{
+	//case WAIT_TIMEOUT:
+	//	return false; break;
+	//case WAIT_OBJECT_0:
+	//	return true; break;
+	//default:
+	//	return false; break;
+	//}
+}
 int WaitingRoom::WatingRoomMain()
 {
 	hWaitingRoomEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -43,7 +59,7 @@ int WaitingRoom::WatingRoomMain()
 				{
 
 					sprintf(inputstr, "@E_%d_%s", user->wData.RoomNum, user->getID());
-					send(sock, inputstr, strlen(inputstr)+1, 0);
+					send(sock, inputstr, strlen(inputstr) + 1, 0);
 					memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
 					if (WaitForSingleObject(hWaitingRoomEventForRequest, 5000) == WAIT_TIMEOUT)continue;
 					else
@@ -78,11 +94,13 @@ int WaitingRoom::WatingRoomMain()
 				//ChattingSendToServer(string chat) >> 이 함수 안에 InputChatLog("alalssk", inputstr); 이함수를 넣음
 				//여기선 채팅을 버서로 보내기만하고 inputstr이랑 sz초기화해준다
 				//채팅 출력과  채팅창 초기화는 Recv스레드에서 할것임
-
-				InputChatLog(user->getID(), inputstr);
+				//=================================
+				req_SendMsgToServer(inputstr);
+				//InputChatLog(user->getID(), inputstr);
 				memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
-				initChatListBox();//채팅창 초기화
-				PrintChatLogList();//출력
+				//initChatListBox();//채팅창 초기화
+				//PrintChatLogList();//출력
+				gotoxy(7, 28); cout << "                                   ";
 				gotoxy(7, 28);
 			}
 			else
@@ -116,11 +134,11 @@ void WaitingRoom::PrintUserList()
 
 		}
 		else {
-			gotoxy(7, 5 + i); cout << "          초기화                ";
+			gotoxy(7, 5 + i); cout << "          초기화              ";
 		}
 
 
-	//	cout << "READY!!" << "  ||  " << "DIDIDIDIDIDID" << "  ||  " << 15 << endl;//state || ID || WinCount
+		//	cout << "READY!!" << "  ||  " << "DIDIDIDIDIDID" << "  ||  " << 15 << endl;//state || ID || WinCount
 	}
 }
 void WaitingRoom::PrintButton()

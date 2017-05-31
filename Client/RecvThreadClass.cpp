@@ -31,6 +31,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 {
 	ThreadData tData = *((ThreadData*)arg);
 	char recvMsg[BUF_SIZE] = "";
+	char recvID[13] = "";
 	char *tmp_tok;
 	int itmp_RoomNum;
 	int strLen;
@@ -56,7 +57,16 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			memset(recvMsg, 0, sizeof(recvMsg));
 		}
 		else if (recvMsg[0] == '/')
-		{//채팅메시지 전용
+		{	//채팅메시지 전용
+			//방번호는 굳이 받을필요없음 방에있는애들한테만 메시지를 보내니까
+			//"/1_[보낸놈ID]_[내용]"
+			tmp_tok = strtok(recvMsg, "_");
+			tmp_tok = strtok(NULL, "_");
+			strcpy(recvID, tmp_tok);
+			tmp_tok = strtok(NULL, "_");
+			tData.wRoom->InputChatLog(recvID, tmp_tok);
+			tData.wRoom->initChatListBox();//채팅창 초기화
+			tData.wRoom->PrintChatLogList();//출력
 
 		}
 		else if (recvMsg[0] == '@')	//리퀘스트(req) 방만들기, 종료(로그아웃)요청완료 등 메시지 받는곳
