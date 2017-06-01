@@ -9,6 +9,17 @@ WaitingRoom::WaitingRoom()
 WaitingRoom::~WaitingRoom()
 {
 }
+void WaitingRoom::AllClear()
+{
+	ClearXY();
+	gotoxy(1, 1);
+}
+void WaitingRoom::PrintStartGameMsg()
+{
+	gotoxy(12, 15); cout << "+--------------------------------------------------+";
+	gotoxy(12, 16); cout << "|           Press any key for start game           |";
+	gotoxy(12, 17); cout << "+--------------------------------------------------+";
+}
 void WaitingRoom::setUserInfo(UserInfo *input_user)
 {
 	user = input_user;
@@ -36,8 +47,8 @@ int WaitingRoom::WatingRoomMain()
 	Sleep(500);
 	sock = user->getSocket();
 	//user.setUserID("alalssk");/*###임시 채팅로그 만드는중*/
-	gotoxy(5, 3);	cout << " No. " << 1234567;//gotoxy(5+5,3); cout<<RoomNum;
-	gotoxy(5 + 15, 3); cout << "Name: " << " 방제목방제목방제목";
+	gotoxy(5, 3);	cout << " No. "; gotoxy(5 + 5, 3); cout << user->wData.RoomNum;
+	gotoxy(5 + 15, 3); cout << "Name: "; gotoxy(5 + 15 + 6, 3); cout << user->wData.RoomName;
 	GrideBox(5, 4, 3, 18);//PrintUserListBox
 	PrintUserList();
 	GrideBox(5, 9, 20, 18);//PrintChatBox
@@ -46,7 +57,7 @@ int WaitingRoom::WatingRoomMain()
 	char inputstr[MAXCHAR];
 	int inputstrSz = 0;
 	memset(inputstr, 0, sizeof(inputstr));
-	while (1)
+	while ((user->getClientMode() != 3))
 	{
 		key = getKeyDirectionCheck();
 		WRinfo.SetWaitingRoomFlag(key);//왼쪽 오른쪽 구분(메뉴선택, 채팅)
@@ -61,18 +72,28 @@ int WaitingRoom::WatingRoomMain()
 					sprintf(inputstr, "@E_%d_%s", user->wData.RoomNum, user->getID());
 					send(sock, inputstr, strlen(inputstr) + 1, 0);
 					memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
-					if (WaitForSingleObject(hWaitingRoomEventForRequest, 5000) == WAIT_TIMEOUT)continue;
-					else
+					if (WaitForSingleObject(hWaitingRoomEventForRequest, 5000) == WAIT_OBJECT_0)
 					{
 						//방정보 변경 >> 방 나가는거니까 아얘 방정보 초기화시켜버림
 						user->ExitWaitingRoom();
 						break;
 					}
+					else
+					{
+						continue;
+					}
 
 				}
 				else if (WRinfo.GetWaitingRoomTxtNum() == 1)//게임시작버튼 - 방장만 누를수 있게
 				{
+					if (strcmp(user->wData.UserName[0], "alalssk-10") == 0) //user->getID()
+					{
+						char StartMsg[3 + 4 + 13] = "";
+						sprintf(StartMsg, "$%d_%s", user->wData.RoomNum, user->getID());
+						send(sock, StartMsg, strlen(StartMsg) + 1, 0);
 
+
+					}
 				}
 
 			}

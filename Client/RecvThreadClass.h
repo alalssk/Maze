@@ -7,6 +7,7 @@ class RecvThreadClass
 	static unsigned WINAPI RecvMsg(PVOID arg);
 	
 public:
+
 	typedef struct
 	{
 		SOCKET sock;

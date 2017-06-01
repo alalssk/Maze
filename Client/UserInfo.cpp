@@ -18,7 +18,7 @@ void UserInfo::initUserInfoData()
 	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
 	WinCount = 0;
 	sock = NULL;
-	this->state = 0;
+	this->ClientMode = 0;
 	wData.ConnectUserNum = 0;
 	memset(wData.RoomName, 0, sizeof(wData.RoomName));
 	memset(wData.UserName, 0, sizeof(wData.UserName));
@@ -140,4 +140,12 @@ void UserInfo::ExitWaitingRoom()
 
 	setRoomState(false);
 
+}
+void UserInfo::setClientMode(int Mode)
+{
+	this->ClientMode = Mode;
+}
+int UserInfo::getClientMode()
+{
+	return this->ClientMode;
 }

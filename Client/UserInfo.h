@@ -14,7 +14,7 @@ class UserInfo
 	int WinCount;
 
 	SOCKET sock;
-	int state;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
+	int ClientMode;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
 
 
 
@@ -39,6 +39,8 @@ public:
 	void setWaitingRoomUserList(char*);
 	bool setRoomState(bool);
 	bool getRoomState();
+	void setClientMode(int);
+	int getClientMode();
 
 	typedef struct RoomData
 	{

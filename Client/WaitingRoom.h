@@ -22,6 +22,8 @@ public:
 	void PrintChatLogList();
 	void initChatListBox();
 	/*chat*/
+	void AllClear();
+	void PrintStartGameMsg();
 private:
 	bool req_ExitWaitingRoom();//@E_[¹æ¹øÈ£]_[ID]
 

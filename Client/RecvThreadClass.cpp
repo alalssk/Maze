@@ -69,6 +69,21 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			tData.wRoom->PrintChatLogList();//출력
 
 		}
+		else if (recvMsg[0] == '$')
+		{
+			ClientMode = 3; tData.user->setClientMode(3);
+			tData.wRoom->PrintStartGameMsg();
+			//char input[100]="";
+			//
+			//for (int i = 0; i < 5; i++)
+			//{
+			//	cin >> input;
+			//	cout << "input : "<<input<<endl;
+			//}
+			//tData.wRoom->WatingRoomMain();
+
+
+		}
 		else if (recvMsg[0] == '@')	//리퀘스트(req) 방만들기, 종료(로그아웃)요청완료 등 메시지 받는곳
 		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
 			if (recvMsg[1] == 'R')
@@ -82,7 +97,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 					if (!tData.user->getRoomState())//방이없는경우(RoomState==false)
 					{
 						tData.user->setWaitingRoomData(recvMsg + 4); //[방번호]_[방제목]
-						ClientMode = 2;
+						ClientMode = 2; tData.user->setClientMode(2);
 						SetEvent(tData.lobby->hLobbyEventForRequest);
 					}
 					else
@@ -122,7 +137,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				{
 					if (ClientMode == 2)//대기방상태일때만
 					{
-						ClientMode = 1;
+						ClientMode = 1; tData.user->setClientMode(1);
 						SetEvent(tData.wRoom->hWaitingRoomEventForRequest);
 					}
 				}
@@ -134,7 +149,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 					if (ClientMode == 1)//로비상태일떄만
 					{
 						tData.user->setWaitingRoomData(recvMsg + 4);
-						ClientMode = 2;
+						ClientMode = 2; tData.user->setClientMode(2);
 						SetEvent(tData.lobby->hLobbyEventForRequest);
 					}
 				}

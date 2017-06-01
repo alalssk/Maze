@@ -5,6 +5,7 @@
 #include"Lobby.h"
 #include"RecvThreadClass.h"
 #include"WaitingRoom.h"
+#include"GamePlayClass.h"
 
 #define CONNECTION_CODE 1
 #define CREATE_ROOM 0
@@ -27,18 +28,21 @@ int main()
 	rThre.setUserInfo(&user);//ThreadData.user에 들어감
 	rThre.tData.lobby = &Lobby;
 	rThre.tData.wRoom = &wRoom;
+
+	GamePlayClass gp;
+
 	//wRoom.WatingRoomMain();
 
 	while (!rThre.ExitFlag)
 	{
 		lmain.ConnectServer();
 		rThre.tData.sock = lmain.toServer.getSocket();
-//		rThre.tData.lobby = &Lobby;
+		//		rThre.tData.lobby = &Lobby;
 		code = lmain.LoginMainStart();
 		if (code == EXIT_CODE)//0 접속종료, 1 접속성공
 		{
 			return 0;
-			
+
 		}
 		else if (code == CONNECTION_CODE)
 		{
@@ -52,16 +56,36 @@ int main()
 				방만들기:0, 게임참가: 1, 로그아웃: 4, 종료: 3
 				게임끝나면 로비로(임시)
 				*/
-				
+
 				switch (Lobby.LobbyMain())
 				{
 				case CREATE_ROOM:
 
 					//rThre.tData.wRoom.WatingRoomMain();
-					wRoom.WatingRoomMain();
+					while ((user.getClientMode() >= 2))
+					{
+						wRoom.WatingRoomMain();
+						if (user.getClientMode() == 3)
+						{
+							gp.mazeGameMain();
+							rThre.ClientMode = 2; user.setClientMode(2);
+						}
+						else {}
+						//게임끝났으니까 ClientMode 2로 변경
+					}
 					break;
 				case JOIN_ROOM:
-					wRoom.WatingRoomMain();
+					while ((user.getClientMode() >= 2))
+					{
+						wRoom.WatingRoomMain();
+						if (user.getClientMode() == 3)
+						{
+							gp.mazeGameMain();
+							rThre.ClientMode = 2; user.setClientMode(2);
+						}
+						else {}
+						//게임끝났으니까 ClientMode 2로 변경
+					}
 					break;
 				case LOGOUT_CODE:
 					rThre.LogoutFlag = true;
@@ -76,7 +100,7 @@ int main()
 					break;
 				}
 			}//end while
-			
+
 			//lmain.toServer.CleanupSock();
 			lmain.~LoginMain();
 			Lobby.~Lobby();

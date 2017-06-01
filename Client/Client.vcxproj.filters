@@ -48,6 +48,12 @@
     <ClInclude Include="WaitingRoom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GamePlayClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlayInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -81,6 +87,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WaitingRoom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlayClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlayInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

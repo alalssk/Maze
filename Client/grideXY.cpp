@@ -19,7 +19,7 @@ void grideXY::gotoxy(int x, int y)
 
 void grideXY::ClearXY()
 {
-	for (int i = 0; i < Y_MAX; i++)// MAX값 으로 바꾸자
+	for (int i = 0; i < Y_MAX+1; i++)// MAX값 으로 바꾸자
 	{
 		gotoxy(1, i);
 		cout << "                                                                                                                      ";

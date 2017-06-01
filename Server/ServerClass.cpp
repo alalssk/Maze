@@ -326,6 +326,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
 					// send " /1_ID_내용 " 여기서 1은 방번호가 아니라 send성공을 의미함
 				}
+				else if (ioInfo->buffer[0] == '$')
+				{
+					cout << "게임시작 패킷(" << ioInfo->buffer << ")받음 " << endl;
+					send(sock, "$1_", 3, 0);
+				}
 				/*WSARecv*/
 				delete ioInfo;
 				ioInfo = new OVER_DATA;
