@@ -313,8 +313,18 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				}//end @
 				else if (ioInfo->buffer[0] == '/')
 				{	// recv " /[방번호]_[Id]_[내용] "
-					cout <<"채팅전용 패킷 받았어요: "<< ioInfo->buffer << endl;
-					// send " /1_ID_내용 "
+					//func(int 방번호, char* [ID]_[내용]) ->> 아이디랑 내용은 클라에서 나누니까 그냥 통째로 보내면 됨.
+
+
+					int RoomNum;
+					char *tmp;
+					tmp = strtok(ioInfo->buffer + 1, "_");
+					RoomNum = atoi(tmp);
+					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
+					tmp = strtok(NULL, "");
+					SendMsgWaitingRoomFunc(RoomNum, shareData, tmp);
+					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
+					// send " /1_ID_내용 " 여기서 1은 방번호가 아니라 send성공을 의미함
 				}
 				/*WSARecv*/
 				delete ioInfo;
@@ -349,12 +359,12 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				switch (dwErrCode)
 				{
 				case ERROR_NETNAME_DELETED:
-					cout << "소캣("<<sock<<')'<<" 연결 해제됨: ";
+					cout << "소캣(" << sock << ')' << " 연결 해제됨: ";
 					CloseClientSock(sock, ioInfo, shareData);
 					//delete ioInfo;
 					break;
 				default:
-					cout << "[ERROR]GQCS Linked file handle error(" << dwErrCode << ')' << endl; 
+					cout << "[ERROR]GQCS Linked file handle error(" << dwErrCode << ')' << endl;
 					break;
 				}
 
@@ -510,8 +520,8 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				memset(CreateRoomSendMsg, 0, sizeof(CreateRoomSendMsg));
 				cout << "================유저리스트 전송부================" << endl;
 				cout << CreateRoomSendMsg << endl;
-				sprintf(CreateRoomSendMsg, "@U1_%s-10_",iter->name);
-				cout << CreateRoomSendMsg <<" >> 전송"<< endl;
+				sprintf(CreateRoomSendMsg, "@U1_%s-10_", iter->name);
+				cout << CreateRoomSendMsg << " >> 전송" << endl;
 				send(sock, CreateRoomSendMsg, strlen(CreateRoomSendMsg), 0);
 				//============================유저리스트 전송부분============================
 				return true;
@@ -571,7 +581,7 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 								memset(iter_room->ClientsID[j], 0, sizeof(iter_room->ClientsID[j]));
 								iter_room->hClntSock[j] = NULL;
 							}
-							else 
+							else
 							{
 								strcpy(iter_room->ClientsID[j], iter_room->ClientsID[j + 1]);
 								iter_room->hClntSock[j] = iter_room->hClntSock[j + 1];
@@ -594,11 +604,11 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 					strcat(ExitRoomSendMsg, "10");//임시winCount
 				}
 				strcat(ExitRoomSendMsg, "_");
-				
+
 				MsgSz = strlen(ExitRoomSendMsg);
 				for (int i = 0; i < iter_room->UserCount; i++)
 				{
-					cout << '[' << iter_room->hClntSock[i]<<"] 방나가기 유저리스트 전송 >> " << ExitRoomSendMsg << endl;
+					cout << '[' << iter_room->hClntSock[i] << "] 방나가기 유저리스트 전송 >> " << ExitRoomSendMsg << endl;
 					//유저카운트만 마이너스되고 방유저 배열이 안바뀐듯
 					send(iter_room->hClntSock[i], ExitRoomSendMsg, MsgSz, 0);
 				}
@@ -652,12 +662,12 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 				send(sock, JoinRoomSendMsg, strlen(JoinRoomSendMsg), 0);
 				cout << "방 입장완료 >> ";
 				cout << JoinRoomSendMsg << "전송 성공" << endl;
-				
+
 				//====================유저리스트 전송부분============================
 				memset(JoinRoomSendMsg, 0, sizeof(JoinRoomSendMsg));
 				for (int i = 0; i < iter_room->UserCount; i++)
 				{//@U1_alalssk-5_test-10_
-					if(i==0)strcpy(JoinRoomSendMsg, "@U1_");
+					if (i == 0)strcpy(JoinRoomSendMsg, "@U1_");
 					else strcat(JoinRoomSendMsg, "_");
 					strcat(JoinRoomSendMsg, iter_room->ClientsID[i]);
 					strcat(JoinRoomSendMsg, "-");
@@ -668,8 +678,8 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 				MsgSz = strlen(JoinRoomSendMsg);
 				for (int i = 0; i < iter_room->UserCount; i++)
 				{
-					cout <<'['<<iter_room->hClntSock[i]<< "]조인 유저리스트 전송 >> " << JoinRoomSendMsg << endl;
-					send(iter_room->hClntSock[i], JoinRoomSendMsg, MsgSz,0);
+					cout << '[' << iter_room->hClntSock[i] << "]조인 유저리스트 전송 >> " << JoinRoomSendMsg << endl;
+					send(iter_room->hClntSock[i], JoinRoomSendMsg, MsgSz, 0);
 				}
 				//====================유저리스트 전송부분============================
 				return true;
@@ -737,6 +747,26 @@ void ServerClass::SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD SnedSz)
 	{
 		send(iter->hClntSock, buf, SnedSz, 0);
 		iter++;
+	}
+}
+void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA lpComp, char* msg)
+{
+	list<ChatRoom>::iterator iter_room;
+	char SendMsg[1024] = "";
+	iter_room = lpComp->ChatRoomList.begin();
+	while (iter_room != lpComp->ChatRoomList.end())
+	{
+		if (iter_room->ChatRoomNum == RoomNum)
+		{
+			break;
+		}
+		else iter_room++;
+	}
+	sprintf(SendMsg, "/1_%s", msg);
+	for (int i = 0; i < iter_room->UserCount; i++)
+	{
+		send(iter_room->hClntSock[i], SendMsg, strlen(SendMsg), 0);
+		cout << '[' << iter_room->hClntSock[i] << "] >> " << SendMsg << endl;
 	}
 }
 void ServerClass::PrintRoomInfo()

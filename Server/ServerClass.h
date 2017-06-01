@@ -82,6 +82,7 @@ class ServerClass
 	static const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);
 	static const bool SendNewWaitingUserList(list<ChatRoom>::iterator);
 	static void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
+	static void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
 	static bool SendWaitingRoomList(LPShared_DATA lpComp);
 
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
