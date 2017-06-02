@@ -18,17 +18,18 @@ int GamePlayClass::mazeGameMain()
 {
 	ClearXY();
 	info.ReadMap();
-	bool startFlag = true;
+	bool startFlag = false;
 	char SendMsg[1024] = "";
 	//여기왔을때 상태변경요청send "$S[방번호]_[ID] ID말고 번호로 하면 어떨까? 
 	//서버에서 상태 바꾸고 $S1_[ID]전송(서버에서 해당하는 방 번호의 클라에만 전송해주는거니까 방번호를 적어줄 필요없음) 클라에서는 해당 ID상태 바꿔줌
 	//0.5초마다 세명의 상태를 비교하여 보두 true가 되면 3초후 게임시작 
 	//나는 게임시작 준비가 되었다 >> $S[방번호]_[ID] 을 서버로 보냄
-	sprintf(SendMsg, "$S%d_%s", user->wData.RoomNum, user->getID());//$S1[방번호]_[ID]
+	sprintf(SendMsg, "$S%d_%s", user->wData.RoomNum, user->getID());//$S[방번호]_[ID]
 	send(user->getSocket(), SendMsg, strlen(SendMsg) + 1, 0);
-	while (1)
+	while (!startFlag)
 	{
 		ClearXY();
+
 		startFlag = true;
 		for (int i = 0; i < user->wData.ConnectUserNum; i++)
 		{
@@ -46,7 +47,11 @@ int GamePlayClass::mazeGameMain()
 		}
 		Sleep(1000);
 	}
-	info.ReadMap();
+
+	ClearXY(); info.PrintThree(); Sleep(1500);
+	ClearXY(); info.PrintTwo(); Sleep(1500);
+	ClearXY(); info.PrintOne(); Sleep(1000);
+	
 	gotoxy(1, 1);
 	info.grideMap();
 	while (1)

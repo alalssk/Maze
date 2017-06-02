@@ -334,9 +334,10 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
 					}
 					else if (ioInfo->buffer[1] == 'S')
-					{	//$S1[방번호]_[ID] 을 받으면
+					{	//$S[방번호]_[ID] 을 받으면
 						//$S1_[ID]를 보내야함
 						cout << '[' << sock << "]게임 준비 완료 패킷 받음 >> " << ioInfo->buffer << endl;
+						SendUserState(shareData, ioInfo->buffer + 2);
 
 
 					}
@@ -518,7 +519,9 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				memset(room.ClientsID[2], 0, sizeof(room.ClientsID[2]));
 				room.hClntSock[0] = sock;//만드는애도 소캣 넣어줘야지!!
 				room.UserCount = 1;
-
+				room.UserState[0] = false;
+				room.UserState[1] = false;
+				room.UserState[2] = false;
 				iter_user->MyRoom = room.ChatRoomNum;
 
 				EnterCriticalSection(&cs);//cs
@@ -787,6 +790,45 @@ void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA lpComp, char
 		send(iter_room->hClntSock[i], SendMsg, strlen(SendMsg), 0);
 		cout << '[' << iter_room->hClntSock[i] << "] >> " << SendMsg << endl;
 	}
+}
+bool ServerClass::SendUserState(LPShared_DATA lpComp, char *input)
+{//방번호_아이디
+	char *tmp;
+	int InputRoomNum=0;
+	char InputUserID[13] = "";
+	char SendMsg[100] = "";
+	tmp = strtok(input, "_");
+	InputRoomNum = atoi(tmp);
+	tmp = strtok(NULL, "_");
+	strcpy(InputUserID, tmp);
+
+	list<ChatRoom>::iterator iter_room;
+	iter_room = lpComp->ChatRoomList.begin();
+	while (iter_room != lpComp->ChatRoomList.end())
+	{
+		if (iter_room->ChatRoomNum == InputRoomNum)
+		{
+			for (int i = 0; i < iter_room->UserCount; i++)
+			{
+				if (strcmp(iter_room->ClientsID[i], InputUserID) == 0)
+				{
+					iter_room->UserState[i] = true;
+					//$S1_[ID]를 보내야함
+					sprintf(SendMsg, "$S1_%s", InputUserID);
+					for (int j = 0; j < iter_room->UserCount; j++)
+					{
+						send(iter_room->hClntSock[j], SendMsg, strlen(SendMsg) + 1, 0);
+						cout << '[' << iter_room->hClntSock[j] << "] 상태변경 메시지 보냄 >> " << InputUserID << "의 상태를 변경하라 클라들이여" << endl;
+					}
+					
+					return true;
+				}
+			}
+		}
+		else iter_room++;
+	}
+
+	return false;
 }
 void ServerClass::PrintRoomInfo()
 {

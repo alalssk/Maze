@@ -6,6 +6,7 @@
 #include"RecvThreadClass.h"
 #include"WaitingRoom.h"
 #include"GamePlayClass.h"
+#include"GamePlayInfo.h"
 
 #define CONNECTION_CODE 1
 #define CREATE_ROOM 0

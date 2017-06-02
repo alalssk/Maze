@@ -93,7 +93,7 @@ int WaitingRoom::WatingRoomMain()
 
 						send(sock, StartMsg, strlen(StartMsg) + 1, 0);
 
-
+						key = getKeyDirectionCheck();//방장만 break나 리턴하면 다른 방장이 아닌애들이랑 다른상태가 되니까 
 					}
 					else {
 						//방장만 시작할수 있어욤 출력
@@ -140,7 +140,7 @@ int WaitingRoom::WatingRoomMain()
 
 
 		}
-	}
+	}//end while
 	return 0;
 }
 

@@ -47,6 +47,7 @@ class ServerClass
 		int ChatRoomNum;//방 번호(고유)
 		char chatRoomName[MAX_CHATROOM_SIZE];
 		char ClientsID[3][MAX_NAME_SIZE];
+		bool UserState[3];
 		SOCKET hClntSock[3];
 		int UserCount;//이 방에 접속중인 user수
 	}ChatRoom, *LPChatRoom;
@@ -86,6 +87,7 @@ class ServerClass
 	static void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
 	static void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
 	static bool SendWaitingRoomList(LPShared_DATA lpComp);
+	static bool SendUserState(LPShared_DATA lpComp, char *input);//[방번호]_[ID]
 
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
