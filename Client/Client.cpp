@@ -19,19 +19,19 @@ int main()
 	Lobby Lobby;
 	RecvThreadClass rThre;
 	WaitingRoom wRoom;
+	GamePlayClass gPlay;
 	UserInfo user;
 	int code;
-	user.initUserInfo();
+	//user.initUserInfo();
+	user.initUserInfoData();
 	lmain.setUserInfo(&user);
 	Lobby.setUserInfo(&user);
 	wRoom.setUserInfo(&user);
+	gPlay.setUserInfo(&user);
 	rThre.setUserInfo(&user);//ThreadData.user에 들어감
 	rThre.tData.lobby = &Lobby;
 	rThre.tData.wRoom = &wRoom;
-
-	GamePlayClass gp;
-
-	//wRoom.WatingRoomMain();
+	rThre.tData.gPlay = &gPlay;
 
 	while (!rThre.ExitFlag)
 	{
@@ -67,7 +67,7 @@ int main()
 						wRoom.WatingRoomMain();
 						if (user.getClientMode() == 3)
 						{
-							gp.mazeGameMain();
+							gPlay.mazeGameMain();
 							rThre.ClientMode = 2; user.setClientMode(2);
 						}
 						else {}
@@ -80,7 +80,7 @@ int main()
 						wRoom.WatingRoomMain();
 						if (user.getClientMode() == 3)
 						{
-							gp.mazeGameMain();
+							gPlay.mazeGameMain();
 							rThre.ClientMode = 2; user.setClientMode(2);
 						}
 						else {}

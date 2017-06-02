@@ -25,7 +25,7 @@ void UserInfo::initUserInfoData()
 	wData.RoomNum = 0;
 	for (int i = 0; i < 3; i++)
 	{
-		wData.state[i] = false;
+		wData.UserState[i] = false;
 		wData.winCount[i] = 0;
 	}
 }
@@ -73,12 +73,12 @@ char* UserInfo::conv_ID_Password()
 
 	return userID_Password_for_send;
 }
-void UserInfo::initUserInfo()
-{
-	memset(id, 0, sizeof(id));
-	memset(password, 0, sizeof(password));
-	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
-}
+//void UserInfo::initUserInfo()
+//{
+//	memset(id, 0, sizeof(id));
+//	memset(password, 0, sizeof(password));
+//	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
+//}
 void UserInfo::setSocket(SOCKET sock)
 {
 	this->sock = sock;
@@ -100,22 +100,24 @@ void UserInfo::setWaitingRoomData(char* input)//ChangeRoomState();
 	if (wData.ConnectUserNum == 0)
 	{
 		strcpy(wData.UserName[0], id);
-		wData.state[0] = true;
 		wData.winCount[0] = 10;//юс╫ц
 		wData.ConnectUserNum = 1;
 	}
 	setRoomState(true);
 }
 void UserInfo::setWaitingRoomUserList(char* input)
-{//alalssk-5_test-10_
+{//alalssk-5_test-10
 	char *tmp;
 	int iUserNum = 0;
 	memset(wData.UserName, 0, sizeof(wData.UserName));
-	tmp = strtok(input, "_");
+	tmp = strtok(input, "-");
 	while (tmp)
 	{
-		strcpy(wData.UserName[iUserNum++], tmp);
+		strcpy(wData.UserName[iUserNum], tmp);
 		tmp = strtok(NULL, "_");
+		wData.winCount[iUserNum++] = atoi(tmp);
+		tmp = strtok(NULL, "-");
+
 	}
 	wData.ConnectUserNum = iUserNum;
 }
@@ -133,7 +135,7 @@ void UserInfo::ExitWaitingRoom()
 {
 	wData.RoomNum = 0;
 	memset(wData.RoomName, 0, sizeof(wData.RoomName));
-	memset(wData.state, 0, sizeof(wData.state));
+	memset(wData.UserState, 0, sizeof(wData.UserState));
 	memset(wData.UserName, 0, sizeof(wData.UserName));
 	memset(wData.winCount, 0, sizeof(wData.winCount));
 	wData.ConnectUserNum = 0;

@@ -84,15 +84,19 @@ int WaitingRoom::WatingRoomMain()
 					}
 
 				}
-				else if (WRinfo.GetWaitingRoomTxtNum() == 1)//게임시작버튼 - 방장만 누를수 있게
+				else if (WRinfo.GetWaitingRoomTxtNum() == 1)//게임시작버튼
 				{
-					if (strcmp(user->wData.UserName[0], "alalssk-10") == 0) //user->getID()
+					if (strcmp(user->wData.UserName[0], user->getID()) == 0) // 방장만 누를수 있음
 					{
 						char StartMsg[3 + 4 + 13] = "";
-						sprintf(StartMsg, "$%d_%s", user->wData.RoomNum, user->getID());
+						sprintf(StartMsg, "$R_%d", user->wData.RoomNum);//$R_방번호 전송 >> 해당 방 게임시작 요청
+
 						send(sock, StartMsg, strlen(StartMsg) + 1, 0);
 
 
+					}
+					else {
+						//방장만 시작할수 있어욤 출력
 					}
 				}
 

@@ -29,6 +29,8 @@ class ServerClass
 		SOCKET hClntSock;
 		SOCKADDR_IN clntAdr;
 		char name[MAX_NAME_SIZE];
+		int win_count;
+		int play_count;
 		int MyRoom;
 	}CLIENT_DATA, *LPCLIENT_DATA;
 

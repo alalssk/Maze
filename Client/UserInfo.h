@@ -34,7 +34,7 @@ public:
 	SOCKET getSocket();
 	UserInfo getUserInfoClass();
 	char* conv_ID_Password();
-	void initUserInfo();
+//	void initUserInfo();
 	void setWaitingRoomData(char*);//ChangeRoomState();
 	void setWaitingRoomUserList(char*);
 	bool setRoomState(bool);
@@ -46,7 +46,7 @@ public:
 	{
 		int RoomNum;
 		char RoomName[40];
-		bool state[3];//¿œ¥‹ æ»æ∏
+		bool UserState[3];
 		char UserName[3][USER_ID_SIZE];
 		int winCount[3];
 		int ConnectUserNum;

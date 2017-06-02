@@ -26,6 +26,7 @@ bool ServerDB::StartDB()
 	return true;
 
 }
+
 bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 {
 	MYSQL_RES * sql_result;
@@ -41,7 +42,7 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 	pass = tmp;
 
 	char query[1024] = "";
-	sprintf(query, "select user_id, user_pass from user_tbl where user_id = '%s';",id.c_str());
+	sprintf(query, "select user_id, user_pass from user_tbl where user_id = '%s';", id.c_str());
 	query_stat = mysql_query(connection, query);
 	if (query_stat != 0)
 	{
@@ -80,7 +81,7 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 bool ServerDB::Insert_User(string id, string pass)
 {
 	int query_stat;
-	string instrument = "INSERT INTO user_tbl (user_id, user_pass) VALUES ('" + id + "', '" + pass +  "')";
+	string instrument = "INSERT INTO user_tbl (user_id, user_pass) VALUES ('" + id + "', '" + pass + "')";
 	//string instrument = "INSERT INTO user (id, password, connect_IP) VALUES ( '" + id + "', '" + password + "', '" + ip + "')";
 	//insert 예문: insert into user_tbl(user_id, user_pass, user_WinCount, user_PlayCount) values('[ID입력]', '[PASS입력]', 0, 0); 
 	//varchar 형은 입력할때 ''나 "" 해줘야함
@@ -107,4 +108,28 @@ bool ServerDB::OneIncreass_visit_count(string id)
 		return false;
 	}
 	return true;
+}
+bool ServerDB::GetUserWinCount(string id, int &win, int &play)
+{
+	MYSQL_RES * sql_result;
+	MYSQL_ROW sql_row;
+	int query_stat;
+
+	char query[1024] = "";
+	sprintf(query, "select win_count, play_count from user_tbl where user_id = '%s';", id.c_str());
+	query_stat = mysql_query(connection, query);
+	if (query_stat != 0)
+	{
+		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
+		return 1;
+	}
+	else{
+		sql_result = mysql_store_result(connection);
+
+		sql_row = mysql_fetch_row(sql_result);
+		cout << sql_row[0] << ':' << sql_row[1] << endl;
+		win = atoi(sql_row[0]);
+		play = atoi(sql_row[1]);
+
+	}
 }

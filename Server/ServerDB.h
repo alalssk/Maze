@@ -18,7 +18,12 @@ using namespace std;
 
 class ServerDB
 {
+
 public:
+	typedef struct {
+		int win_count;
+		int Play_count;
+	}UserCount, *LPUserCount;
 	ServerDB();
 	virtual ~ServerDB();
 	bool StartDB();
@@ -26,6 +31,7 @@ public:
 	bool Find_ID(string id);
 	bool Check_Password(char* id_pass);
 	bool OneIncreass_visit_count(string id);
+	bool GetUserWinCount(string id, int &win, int &play);//_IN, _OUT, _OUT
 private:
 	MYSQL *connection = NULL, conn;
 

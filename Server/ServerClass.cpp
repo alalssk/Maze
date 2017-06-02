@@ -162,8 +162,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 	memset(clntName, 0, (sizeof(clntName)));
 	CLIENT_DATA client_data;
 
-	//list<CLIENT_DATA>::iterator iter;
-	list<ChatRoom>::iterator iter_ChatRoom;
 	while (1)
 	{
 		BOOL bGQCS = GetQueuedCompletionStatus(
@@ -188,6 +186,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
 					client_data.MyRoom = 0;
+					sDB.GetUserWinCount("alalssk", client_data.win_count, client_data.play_count);
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;
@@ -328,8 +327,20 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				}
 				else if (ioInfo->buffer[0] == '$')
 				{
-					cout << "게임시작 패킷(" << ioInfo->buffer << ")받음 " << endl;
-					send(sock, "$1_", 3, 0);
+					if (ioInfo->buffer[1] == 'R')
+					{	//$R_방번호  >> 게임시작요청 임 
+						//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
+						cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
+						SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
+					}
+					else if (ioInfo->buffer[1] == 'S')
+					{	//$S1[방번호]_[ID] 을 받으면
+						//$S1_[ID]를 보내야함
+						cout << '[' << sock << "]게임 준비 완료 패킷 받음 >> " << ioInfo->buffer << endl;
+
+
+					}
+
 				}
 				/*WSARecv*/
 				delete ioInfo;
@@ -490,25 +501,25 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 	*/
 	char tmpRoomName[40] = "";
 	char CreateRoomSendMsg[100] = "";
-	list<CLIENT_DATA>::iterator iter;
-	iter = lpComp->Clients.begin();
-	while (iter != lpComp->Clients.end())
+	list<CLIENT_DATA>::iterator iter_user;
+	iter_user = lpComp->Clients.begin();
+	while (iter_user != lpComp->Clients.end())
 	{
-		if (iter->hClntSock == sock)
+		if (iter_user->hClntSock == sock)
 		{
-			if (iter->MyRoom == 0)
+			if (iter_user->MyRoom == 0)
 			{
 
-				sprintf(tmpRoomName, "[%s]님의 방입니다.", iter->name);
+				sprintf(tmpRoomName, "[%s]님의 방입니다.", iter_user->name);
 				strcpy(room.chatRoomName, tmpRoomName);
 				room.ChatRoomNum = TotalCreateRoomCount + 1;
-				strcpy(room.ClientsID[0], iter->name);
+				strcpy(room.ClientsID[0], iter_user->name);
 				memset(room.ClientsID[1], 0, sizeof(room.ClientsID[1]));
 				memset(room.ClientsID[2], 0, sizeof(room.ClientsID[2]));
 				room.hClntSock[0] = sock;//만드는애도 소캣 넣어줘야지!!
 				room.UserCount = 1;
 
-				iter->MyRoom = room.ChatRoomNum;
+				iter_user->MyRoom = room.ChatRoomNum;
 
 				EnterCriticalSection(&cs);//cs
 				lpComp->ChatRoomList.push_back(room);
@@ -525,7 +536,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				memset(CreateRoomSendMsg, 0, sizeof(CreateRoomSendMsg));
 				cout << "================유저리스트 전송부================" << endl;
 				cout << CreateRoomSendMsg << endl;
-				sprintf(CreateRoomSendMsg, "@U1_%s-10_", iter->name);
+				sprintf(CreateRoomSendMsg, "@U1_%s-%d", iter_user->name, iter_user->win_count);
 				cout << CreateRoomSendMsg << " >> 전송" << endl;
 				send(sock, CreateRoomSendMsg, strlen(CreateRoomSendMsg), 0);
 				//============================유저리스트 전송부분============================
@@ -538,7 +549,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 		}
 		else
 		{
-			iter++;
+			iter_user++;
 		}
 	}
 	return false;//ID를 찾을수 없음.
@@ -608,7 +619,7 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 					strcat(ExitRoomSendMsg, "-");
 					strcat(ExitRoomSendMsg, "10");//임시winCount
 				}
-				strcat(ExitRoomSendMsg, "_");
+				//		strcat(ExitRoomSendMsg, "_");
 
 				MsgSz = strlen(ExitRoomSendMsg);
 				for (int i = 0; i < iter_room->UserCount; i++)
@@ -630,6 +641,7 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 {
 	char JoinRoomSendMsg[100] = "";
 	int MsgSz;
+	char cWinCount[5] = "";
 	list<ChatRoom>::iterator iter_room;
 	list<CLIENT_DATA>::iterator iter_user;
 	iter_room = lpComp->ChatRoomList.begin();
@@ -671,14 +683,16 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 				//====================유저리스트 전송부분============================
 				memset(JoinRoomSendMsg, 0, sizeof(JoinRoomSendMsg));
 				for (int i = 0; i < iter_room->UserCount; i++)
-				{//@U1_alalssk-5_test-10_
+				{//@U1_alalssk-5_test-10
 					if (i == 0)strcpy(JoinRoomSendMsg, "@U1_");
 					else strcat(JoinRoomSendMsg, "_");
 					strcat(JoinRoomSendMsg, iter_room->ClientsID[i]);
 					strcat(JoinRoomSendMsg, "-");
-					strcat(JoinRoomSendMsg, "10");//임시winCount
+					_itoa(iter_user->win_count, cWinCount, 10);
+					strcat(JoinRoomSendMsg, cWinCount);
+					memset(cWinCount, 0, sizeof(cWinCount));
 				}
-				strcat(JoinRoomSendMsg, "_");
+
 
 				MsgSz = strlen(JoinRoomSendMsg);
 				for (int i = 0; i < iter_room->UserCount; i++)

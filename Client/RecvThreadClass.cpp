@@ -70,9 +70,31 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 
 		}
 		else if (recvMsg[0] == '$')
-		{
-			ClientMode = 3; tData.user->setClientMode(3);
-			tData.wRoom->PrintStartGameMsg();
+		{//============ 방장이 서버로 보낸 "$R_방번호" 고대로 받음
+			if (recvMsg[1] == 'R')
+			{
+				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 방에 접속한 애들은 준비하라
+				{
+					ClientMode = 3; tData.user->setClientMode(3);
+					tData.wRoom->PrintStartGameMsg();
+				}
+				
+			}
+			else if (recvMsg[1] == 'S' && ClientMode ==3)// $S관련 패킷은 클라모드가 GamePlay(3)인 상태에만 처리한다.
+			{//$S1_[ID] 애당 아이디 게임준비상태
+				if (recvMsg[2] == '1')
+				{
+					for (int i = 0; i < tData.user->wData.ConnectUserNum; i++)
+					{
+						if (strcmp(tData.user->wData.UserName[i], recvMsg + 4) == 0)
+						{
+							tData.user->wData.UserState[i] = true;
+						}
+					}
+				}
+
+			}
+			
 			//char input[100]="";
 			//
 			//for (int i = 0; i < 5; i++)

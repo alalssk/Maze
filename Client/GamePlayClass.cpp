@@ -10,12 +10,42 @@ GamePlayClass::~GamePlayClass()
 {
 }
 
-
+void GamePlayClass::setUserInfo(UserInfo *input_user)
+{
+	user = input_user;
+}
 int GamePlayClass::mazeGameMain()
 {
 	ClearXY();
-	//여기왔을때 상태변경요청send "$R[방번호]_[ID] ID말고 번호로 하면 어떨까? ---> 서버에서 상태 바꾸고 $R1_[ID]전송 클라에서는 해당 ID상태 바꿔줌
+	info.ReadMap();
+	bool startFlag = true;
+	char SendMsg[1024] = "";
+	//여기왔을때 상태변경요청send "$S[방번호]_[ID] ID말고 번호로 하면 어떨까? 
+	//서버에서 상태 바꾸고 $S1_[ID]전송(서버에서 해당하는 방 번호의 클라에만 전송해주는거니까 방번호를 적어줄 필요없음) 클라에서는 해당 ID상태 바꿔줌
 	//0.5초마다 세명의 상태를 비교하여 보두 true가 되면 3초후 게임시작 
+	//나는 게임시작 준비가 되었다 >> $S[방번호]_[ID] 을 서버로 보냄
+	sprintf(SendMsg, "$S%d_%s", user->wData.RoomNum, user->getID());//$S1[방번호]_[ID]
+	send(user->getSocket(), SendMsg, strlen(SendMsg) + 1, 0);
+	while (1)
+	{
+		ClearXY();
+		startFlag = true;
+		for (int i = 0; i < user->wData.ConnectUserNum; i++)
+		{
+			startFlag = startFlag & (user->wData.UserState[i]);
+		}
+		cout << "StartFlag : ";
+		if (startFlag)cout << "TRUE" << endl; else cout << "FALSE" << endl;
+		cout << "방 번호 [" << user->wData.RoomNum << ']' << endl;
+		cout << "방 이름: " << user->wData.RoomName << endl;
+		cout << "방에 접속중인 유저 수: " << user->wData.ConnectUserNum << endl;
+		for (int i = 0; i < user->wData.ConnectUserNum; i++)
+		{
+			cout << i << ". ID: " << user->wData.UserName[i] << " [승수-" << user->wData.winCount[i] << "] 상태(";
+			if (user->wData.UserState[i])cout << "TRUE)" << endl; else cout << "FALSE)" << endl;;
+		}
+		Sleep(1000);
+	}
 	info.ReadMap();
 	gotoxy(1, 1);
 	info.grideMap();
@@ -28,7 +58,7 @@ int GamePlayClass::mazeGameMain()
 		if (finalPoint())//골인지점
 		{
 			ClearXY();
-		//	Ending();
+			//	Ending();
 			//userlog.PrintUserlog();
 			key = 0, x = 2, y = 2;//init
 			return 0;

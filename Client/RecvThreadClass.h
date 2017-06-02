@@ -1,6 +1,7 @@
 #pragma once
 #include"Lobby.h"
 #include"WaitingRoom.h"
+#include"GamePlayClass.h"
 class RecvThreadClass
 {
 	HANDLE hSndThread, hRcvThread;
@@ -14,6 +15,7 @@ public:
 		UserInfo *user;
 		Lobby *lobby;
 		WaitingRoom *wRoom;
+		GamePlayClass *gPlay;
 
 	}ThreadData;	ThreadData tData;// RecvThread의 파라메타로 넣어줄 데이타
 	RecvThreadClass();
