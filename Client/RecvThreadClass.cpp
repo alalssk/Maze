@@ -70,7 +70,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 
 		}
 		else if (recvMsg[0] == '$')
-		{//============ 방장이 서버로 보낸 "$R_방번호" 고대로 받음
+		{//============ 방장이 서버로 보낸 "$R_방번호" 고대로 받음 >> 이건 모든 클라에 뿌리는 패킷임
 			if (recvMsg[1] == 'R')
 			{
 				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 방에 접속한 애들은 준비하라
