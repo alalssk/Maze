@@ -343,6 +343,18 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					}
 
 				}
+				else if (ioInfo->buffer[0] == 'P')
+				{//=========================== P방번호_유저키_방향키
+					if (ioInfo->buffer[1] == 'S')//PS방번호 >> 해당 대기방이 게임을 시작했다는 신호
+					{//게임이 끝나면 지워줘야ㅑ겠지 당욘히
+
+					}
+
+					cout << "GamePlay 패킷 받음 >> " << ioInfo->buffer<< endl;
+
+					//send >> P유저키_방향키
+					
+				}
 				/*WSARecv*/
 				delete ioInfo;
 				ioInfo = new OVER_DATA;
@@ -861,5 +873,52 @@ void ServerClass::PrintRoomInfo()
 		iRoomNameSz = 0;
 		memset(cRoomName, 0, sizeof(cRoomName));
 		iter_room++;
+	}
+}
+
+const bool ServerClass::SetStartRoom(LPShared_DATA lpComp, int RoomNum)
+{
+	list<ChatRoom>::iterator iter_room;
+	iter_room = lpComp->ChatRoomList.begin();
+	list<ChatRoom>::iterator iter_game;
+	iter_game = lpComp->GameRoomList.begin();
+	while (iter_room != lpComp->ChatRoomList.end())
+	{
+		if (iter_room->ChatRoomNum == RoomNum)
+		{
+			lpComp->GameRoomList.splice(lpComp->GameRoomList.begin(), lpComp->ChatRoomList, iter_room);
+			return true;
+		}
+		else iter_room++;
+	}
+	return false;
+}
+
+//게임중인 방 검사 (클라에 send해주는 함수) 만들기
+
+void ServerClass::Print_GameRoomList()//게임중인 방 출력 함수도 만들기 main용
+{
+	list<ChatRoom>::iterator iter_game;
+	iter_game = shareData->ChatRoomList.begin();
+	while (iter_game != shareData->ChatRoomList.end())
+	{
+		cout << '[' << iter_game->chatRoomName << "]"; 
+		
+		if (++iter_game == shareData->ChatRoomList.end()) cout << endl;
+		else cout << '-';
+	}
+}
+const bool ServerClass::DeleteStartRoom(LPShared_DATA lpComp, int RoomNum)
+{
+	list<ChatRoom>::iterator iter_game;
+	iter_game = lpComp->GameRoomList.begin();
+	while (iter_game != lpComp->GameRoomList.end())
+	{
+		if (iter_game->ChatRoomNum == RoomNum)
+		{
+			iter_game = lpComp->ChatRoomList.erase(iter_game);
+			return true;
+		}
+		else iter_game++;
 	}
 }

@@ -181,6 +181,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				if (recvMsg[2] == '1' && ClientMode == 2)
 				{
 					tData.user->setWaitingRoomUserList(recvMsg + 4);
+					tData.user->setRoomUserKey();//RoomUserKey ¼¼ÆÃ
 					tData.wRoom->PrintUserList();
 				}
 			}

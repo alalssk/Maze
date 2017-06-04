@@ -19,6 +19,7 @@ void UserInfo::initUserInfoData()
 	WinCount = 0;
 	sock = NULL;
 	this->ClientMode = 0;
+	RoomUserKey = 0;
 	wData.ConnectUserNum = 0;
 	memset(wData.RoomName, 0, sizeof(wData.RoomName));
 	memset(wData.UserName, 0, sizeof(wData.UserName));
@@ -73,12 +74,7 @@ char* UserInfo::conv_ID_Password()
 
 	return userID_Password_for_send;
 }
-//void UserInfo::initUserInfo()
-//{
-//	memset(id, 0, sizeof(id));
-//	memset(password, 0, sizeof(password));
-//	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
-//}
+
 void UserInfo::setSocket(SOCKET sock)
 {
 	this->sock = sock;
@@ -100,8 +96,9 @@ void UserInfo::setWaitingRoomData(char* input)//ChangeRoomState();
 	if (wData.ConnectUserNum == 0)
 	{
 		strcpy(wData.UserName[0], id);
-		wData.winCount[0] = 10;//임시
+	//	wData.winCount[0] = 10;//임시
 		wData.ConnectUserNum = 1;
+		
 	}
 	setRoomState(true);
 }
@@ -120,6 +117,16 @@ void UserInfo::setWaitingRoomUserList(char* input)
 
 	}
 	wData.ConnectUserNum = iUserNum;
+}
+void UserInfo::setRoomUserKey()
+{
+	for (int i = 0; i < wData.ConnectUserNum; i++)
+	{
+		if (strcmp(id, wData.UserName[i]) == 0)
+		{
+			RoomUserKey = i+1;
+		}
+	}
 }
 bool UserInfo::setRoomState(bool state)
 {
@@ -150,4 +157,8 @@ void UserInfo::setClientMode(int Mode)
 int UserInfo::getClientMode()
 {
 	return this->ClientMode;
+}
+int UserInfo::GetRoomUserKey()
+{
+	return this->RoomUserKey;
 }

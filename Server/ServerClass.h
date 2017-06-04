@@ -61,6 +61,7 @@ class ServerClass
 		HANDLE hComPort;
 		list<CLIENT_DATA> Clients; // list로 하면 어째선지 안됨 초기화를 하라던지...초기화를 하면 다른문제로....동적할당을 안해서 생긴 문제였음
 		list<ChatRoom> ChatRoomList;
+		list<ChatRoom> GameRoomList;
 		int Clients_Num;//접속중인 클라 개수
 		//SOCKET sClients[MAX_CLN_NUM];
 		DWORD recvBytes, flags;
@@ -88,7 +89,8 @@ class ServerClass
 	static void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
 	static bool SendWaitingRoomList(LPShared_DATA lpComp);
 	static bool SendUserState(LPShared_DATA lpComp, char *input);//[방번호]_[ID]
-
+	static const bool SetStartRoom(LPShared_DATA lpComp, int RoomNum);
+	static const bool DeleteStartRoom(LPShared_DATA lpComp, int RoomNum);
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
 	static unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);
@@ -106,6 +108,7 @@ public:
 	void printConnectClientNum();
 	void Print_UserList();
 	void Print_RoomList();
+	void Print_GameRoomList();
 	void ExitIOCP();
 	void PrintRoomInfo();
 };
