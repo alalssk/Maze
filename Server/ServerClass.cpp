@@ -329,6 +329,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				{
 					if (ioInfo->buffer[1] == 'R')
 					{	//$R_방번호  >> 게임시작요청 임 
+						//여기서 게임플레이 리스트에 추가하면될듯.
+						SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
 						//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
 						cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
 						SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
@@ -344,16 +346,22 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 
 				}
 				else if (ioInfo->buffer[0] == 'P')
-				{//=========================== P방번호_유저키_방향키
-					if (ioInfo->buffer[1] == 'S')//PS방번호 >> 해당 대기방이 게임을 시작했다는 신호
-					{//게임이 끝나면 지워줘야ㅑ겠지 당욘히
+				{//=========================== P방번호_유저키_방향키ppppp
 
-					}
-
-					cout << "GamePlay 패킷 받음 >> " << ioInfo->buffer<< endl;
-
+					cout << "GamePlay 패킷 받음 >> " << ioInfo->buffer;
+					char *tmp;
+					int iRoomNum, UserKey, InputKey;
+					tmp = strtok(ioInfo->buffer + 1, "_");
+					iRoomNum = atoi(tmp);
+					tmp = strtok(NULL, "_");
+					UserKey = atoi(tmp);
+					tmp = strtok(NULL, "");
+					InputKey = atoi(tmp);
+					cout<< " >> [" << iRoomNum << "][" << UserKey << "][" << InputKey <<']'<< endl;
+					//func(shareData, roomNum, userKey, inputKey); >> gameplaylist 방 탐색 후 리스트안에 있는 클라들에 "유저키_인풋키" 전송
+					SendUserInputKey_GamePlay(shareData, iRoomNum, UserKey, InputKey);
 					//send >> P유저키_방향키
-					
+
 				}
 				/*WSARecv*/
 				delete ioInfo;
@@ -806,7 +814,7 @@ void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA lpComp, char
 bool ServerClass::SendUserState(LPShared_DATA lpComp, char *input)
 {//방번호_아이디
 	char *tmp;
-	int InputRoomNum=0;
+	int InputRoomNum = 0;
 	char InputUserID[13] = "";
 	char SendMsg[100] = "";
 	tmp = strtok(input, "_");
@@ -832,7 +840,7 @@ bool ServerClass::SendUserState(LPShared_DATA lpComp, char *input)
 						send(iter_room->hClntSock[j], SendMsg, strlen(SendMsg) + 1, 0);
 						cout << '[' << iter_room->hClntSock[j] << "] 상태변경 메시지 보냄 >> " << InputUserID << "의 상태를 변경하라 클라들이여" << endl;
 					}
-					
+
 					return true;
 				}
 			}
@@ -876,35 +884,61 @@ void ServerClass::PrintRoomInfo()
 	}
 }
 
-const bool ServerClass::SetStartRoom(LPShared_DATA lpComp, int RoomNum)
+const bool ServerClass::SetStartRoom(LPShared_DATA lpComp, int RoomNum) //게임이 시작된 방 리스트 추가
 {
 	list<ChatRoom>::iterator iter_room;
 	iter_room = lpComp->ChatRoomList.begin();
-	list<ChatRoom>::iterator iter_game;
-	iter_game = lpComp->GameRoomList.begin();
+	ChatRoom room_game;
 	while (iter_room != lpComp->ChatRoomList.end())
 	{
 		if (iter_room->ChatRoomNum == RoomNum)
 		{
-			lpComp->GameRoomList.splice(lpComp->GameRoomList.begin(), lpComp->ChatRoomList, iter_room);
+			strcpy(room_game.chatRoomName, iter_room->chatRoomName);
+			room_game.ChatRoomNum = iter_room->ChatRoomNum;
+			room_game.UserCount = iter_room->UserCount;
+			for (int i = 0; i < room_game.UserCount; i++)
+			{
+				strcpy(room_game.ClientsID[i], iter_room->ClientsID[i]);
+				room_game.hClntSock[i] = iter_room->hClntSock[i];
+				room_game.UserState[i] = iter_room->UserState[i];
+			}
+			lpComp->GameRoomList.push_back(room_game);
+
 			return true;
 		}
 		else iter_room++;
 	}
 	return false;
 }
+//const bool ServerClass::SetStartRoom(LPShared_DATA lpComp, int RoomNum) //splice 는 좀더 확실하게 알고 쓰자
+//{
+//	list<ChatRoom>::iterator iter_room;
+//	iter_room = lpComp->ChatRoomList.begin();
+//	list<ChatRoom>::iterator iter_game;
+//	iter_game = lpComp->GameRoomList.begin();
+//	while (iter_room != lpComp->ChatRoomList.end())
+//	{
+//		if (iter_room->ChatRoomNum == RoomNum)
+//		{
+//			lpComp->GameRoomList.splice(lpComp->GameRoomList.begin(), lpComp->ChatRoomList, iter_room);
+//			return true;
+//		}
+//		else iter_room++;
+//	}
+//	return false;
+//}
 
 //게임중인 방 검사 (클라에 send해주는 함수) 만들기
 
 void ServerClass::Print_GameRoomList()//게임중인 방 출력 함수도 만들기 main용
 {
 	list<ChatRoom>::iterator iter_game;
-	iter_game = shareData->ChatRoomList.begin();
-	while (iter_game != shareData->ChatRoomList.end())
+	iter_game = shareData->GameRoomList.begin();
+	while (iter_game != shareData->GameRoomList.end())
 	{
-		cout << '[' << iter_game->chatRoomName << "]"; 
-		
-		if (++iter_game == shareData->ChatRoomList.end()) cout << endl;
+		cout << '[' << iter_game->chatRoomName << "]";
+
+		if (++iter_game == shareData->GameRoomList.end()) cout << endl;
 		else cout << '-';
 	}
 }
@@ -916,8 +950,31 @@ const bool ServerClass::DeleteStartRoom(LPShared_DATA lpComp, int RoomNum)
 	{
 		if (iter_game->ChatRoomNum == RoomNum)
 		{
-			iter_game = lpComp->ChatRoomList.erase(iter_game);
+			iter_game = lpComp->GameRoomList.erase(iter_game);
 			return true;
+		}
+		else iter_game++;
+	}
+}
+
+void ServerClass::SendUserInputKey_GamePlay(LPShared_DATA lpComp, int room, int Userkey, int InputKey)
+{
+	list<ChatRoom>::iterator iter_game;
+	char SendMsg[20] = "";
+	int SendMsgSz = 0;
+	iter_game = lpComp->GameRoomList.begin();
+	while (iter_game != lpComp->GameRoomList.end())
+	{
+		if (iter_game->ChatRoomNum == room)
+		{
+			sprintf(SendMsg, "P%d_%d", Userkey, InputKey);
+			SendMsgSz = strlen(SendMsg);
+			for (int i = 0; i < iter_game->UserCount; i++)
+			{
+				send(iter_game->hClntSock[i], SendMsg, SendMsgSz + 1, 0);
+				cout << '[' << iter_game->hClntSock[i] << "] GamePlay 패킷 보냄 >> " << SendMsg << endl;
+			}
+			break;
 		}
 		else iter_game++;
 	}

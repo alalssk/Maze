@@ -12,7 +12,7 @@ int main()
 	bool exitFlag = false;
 	while (!exitFlag)
 	{
-		cout << "접속중인 클라 수 보기(1) 대기방출력(2) 대기방정보(3) 종료는 (5)" << endl;
+		cout << "접속중인 클라 수 보기(1) 대기방출력(2) 대기방정보(3) 게임중방검색(4) 종료는 (5)" << endl;
 		cin >> input;
 		switch (input)
 		{
@@ -25,6 +25,9 @@ int main()
 			break;
 		case 3:
 			sc.PrintRoomInfo();
+			break;
+		case 4:
+			sc.Print_GameRoomList();
 			break;
 		case 5:
 			exitFlag = true;

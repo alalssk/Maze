@@ -89,6 +89,7 @@ class ServerClass
 	static void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
 	static bool SendWaitingRoomList(LPShared_DATA lpComp);
 	static bool SendUserState(LPShared_DATA lpComp, char *input);//[¹æ¹øÈ£]_[ID]
+	static void SendUserInputKey_GamePlay(LPShared_DATA, int, int, int);
 	static const bool SetStartRoom(LPShared_DATA lpComp, int RoomNum);
 	static const bool DeleteStartRoom(LPShared_DATA lpComp, int RoomNum);
 	static unsigned __stdcall AcceptThread(PVOID pServSock);

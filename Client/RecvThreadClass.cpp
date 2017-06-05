@@ -73,7 +73,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 		{//============ 방장이 서버로 보낸 "$R_방번호" 고대로 받음 >> 이건 모든 클라에 뿌리는 패킷임
 			if (recvMsg[1] == 'R')
 			{
-				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 방에 접속한 애들은 준비하라
+				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 대기방 방에 접속한 애들은 게임플레이를 준비하라
 				{
 					ClientMode = 3; tData.user->setClientMode(3);
 					tData.wRoom->PrintStartGameMsg();
@@ -186,7 +186,10 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				}
 			}
 		}
-		else {}
+		else if (recvMsg[0] == 'P')
+		{//P유저키_방향키
+			tData.gPlay->RecvPlayerPosition(recvMsg + 1);
+		}
 		memset(recvMsg, 0, sizeof(recvMsg));
 
 	}

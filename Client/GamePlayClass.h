@@ -7,8 +7,8 @@ class GamePlayClass :protected 	grideXY
 
 	GamePlayInfo info;
 	UserInfo *user;
-	int key;
-	int x, y;//playerÀ§Ä¡
+	int MyKey;
+
 	SOCKET sock;
 public:
 	GamePlayClass();
