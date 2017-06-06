@@ -160,6 +160,37 @@
 		1. 클라 이동키 서버로 전송 "P방_유저키_방향키"											.....OK
 		2. 서버는 게임방 탐색 후 해당 방(GamePlaylist)에 있는 유저한테만 "P유저키_방향키" 전송		.....OK
 		3. 받은 유저키와 방향키를 판별하여 해당하는 유저표시를 이동시킨다.							.....OK
-	종료 동기화
-
 	자동이동->테스트전용 만들기
+	
+	종료 동기화
+	>>게임 끝날때 wData의 Userstate도 초기화
+	>> EndUserNum Recv스레드에서 얘가 3일때 종료 되는거로 되있음 지금 연결중인 유저로 바꾸는게 좋을듯.
+
+	*****게임 시작할때 방장 클라이언트에서 크레쉬가 나는 현상이있는데 원인은 아직 모름
+
+
+	====== 코드 정리 ======
+	1. 클라부분
+	grideXY
+	UserInfo
+	RecvThreadClass
+	ConnectToServer
+	LoginMain
+	LoginMainInfo
+	Lobby
+	LobbyInfo
+	WaitingRoom
+	WaitingRoomInfo
+	GamePlayClass
+	GamePlayInfo
+
+	2. 서버부분
+	ServerDB
+	ServerClass
+	LogClass >> 아직 안씀
+
+
+	****room DB 관련 문제
+		- DeleteWaitingRoom() 구현 하기 전에 room_id 와 room_num 의 무결성? 위반 어케 바꿔야될지 생각.....room_id 연동 시켰음 room_tbl의 room_num 지우면 됨
+		- 한글 입력관련(DB에 한글이 안드가네 뭐가 문제지)....그냥 다 영어로 바꾸겠음. >> DB문제는 아님 mysql_query()함수가 한글이 안대는듯 이 함수에 입력하기전까진 분명히 한글이 깨기지않음.
+		- 

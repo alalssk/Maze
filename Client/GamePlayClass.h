@@ -24,5 +24,6 @@ private:
 	void EndingSubLoop(int a, char c);
 	bool finalPoint();
 	void move_arrow(int key);
+	int GetRandomKey();
 };
 

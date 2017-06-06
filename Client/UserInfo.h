@@ -46,14 +46,16 @@ public:
 	{
 		int RoomNum;
 		char RoomName[40];
-		bool UserState[3];
+		bool UserState[3];//게임 시작 준비 판단
 		char UserName[3][USER_ID_SIZE];
 		int winCount[3];
+		int Rating[3];
+		int EndUserNum;
 		int x[3], y[3];
 		int ConnectUserNum;
 	}WaitingRoom_Data;
 	WaitingRoom_Data wData;
-
+	void initUserXY();
 	int GetRoomUserKey();
 	void ExitWaitingRoom();
 

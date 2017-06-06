@@ -3,6 +3,7 @@
 #include <process.h>
 #include <WinSock2.h>
 #include <Windows.h>
+#include<time.h>
 #include<list>
 #include<vector>
 #include<string>
@@ -20,7 +21,7 @@ using namespace std;
 #define MAX_CLN_NUM 300
 #define MAX_THR_NUM 3
 #define MAX_NAME_SIZE 20
-#define MAX_CHATROOM_SIZE 40
+#define MAX_CHATROOM_SIZE 255
 
 class ServerClass
 {

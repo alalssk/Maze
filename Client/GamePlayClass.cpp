@@ -4,6 +4,7 @@
 GamePlayClass::GamePlayClass() :MyKey(0)
 {
 }
+ 
 
 
 GamePlayClass::~GamePlayClass()
@@ -19,12 +20,7 @@ int GamePlayClass::mazeGameMain()
 	sock = user->getSocket();
 
 	MyKey = user->GetRoomUserKey();
-	user->wData.x[0] = 2;
-	user->wData.y[0] = 2;
-	user->wData.x[1] = 2+59;
-	user->wData.y[1] = 2;
-	user->wData.x[2] = 2;
-	user->wData.y[2] = 2+27;
+	user->initUserXY();
 
 	ClearXY();
 	info.ReadMap();
@@ -74,25 +70,49 @@ int GamePlayClass::mazeGameMain()
 
 		gotoxy(1, 1);
 		//move_arrow(getKeyDirectionCheck());//자동탐색 만들떄 getKey...함수 뺴고 자동으로 키입력하는 함수 만들면 될듯
+		//if (MyKey == 1)SendInputKey(getKeyDirectionCheck());
+		//else SendInputKey(GetRandomKey());
+
 		SendInputKey(getKeyDirectionCheck());
 		//여기서 나의 좌표 send
-		if (finalPoint())//골인지점
+
+		if (finalPoint())//골인지점 아얘 바꿔야 한다.
 		{
+			char SendMsg[20] = "";
+			sprintf(SendMsg, "Q%d_%d", user->wData.RoomNum, MyKey);
+			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
+
+			while (user->wData.EndUserNum < user->wData.ConnectUserNum) 
+			{
+
+				for (int i = 0; i < user->wData.ConnectUserNum; i++)
+				{
+					gotoxy(64 + 13, 20 + i); cout << "           ";
+				}
+				for (int i = 0; i < user->wData.ConnectUserNum; i++)
+				{
+					gotoxy(64, 20 + i); cout<< user->wData.UserName[i]; 
+					gotoxy(64 + 13, 20 + i); 
+					if (user->wData.Rating[i] == 0)
+						cout << ">>진행중"; 
+					else cout << user->wData.Rating[i] << "   등";
+
+				}
+				Sleep(500);
+			}
+
+			/*클라초기화*/
 			ClearXY();
-			//	Ending();
-			//userlog.PrintUserlog();
-			user->wData.x[0] = 2;
-			user->wData.y[0] = 2;
-			user->wData.x[1] = 2 + 60;
-			user->wData.y[1] = 2;
-			user->wData.x[2] = 2;
-			user->wData.y[2] = 2 + 28;
+			user->initUserXY();
+			for (int i = 0; i < user->wData.ConnectUserNum; i++)
+			{
+				user->wData.UserState[i] = false;
+			}
+			user->wData.EndUserNum = 0;//endUserNum 초기화
+			/*클라초기화*/
 			return 0;
 		}
-		else
-		{
 
-		}
 	}
 
 }
@@ -158,7 +178,10 @@ void GamePlayClass::EndingSubLoop(int a, char c)//ENDING
 }
 bool GamePlayClass::finalPoint()
 {
-	if (info.gameMap[user->wData.y[0] - 1][user->wData.x[0] - 1] == 'F') return TRUE;
+	if (info.gameMap[user->wData.y[MyKey-1] - 1][user->wData.x[MyKey-1] - 1] == 'F')
+	{
+		return TRUE;
+	}
 	else return FALSE;
 }
 
@@ -168,60 +191,28 @@ bool GamePlayClass::SendInputKey(int inputKey)
 	char SendMsg[13] = "";
 	switch (inputKey)
 	{
-	case UP://위로
-		if (info.gameMap[user->wData.y[MyKey - 1] - 2][user->wData.x[MyKey - 1] - 1] == '#') {
-			//벽
-			return false;
-		}
-		else {
-			//gotoxy(x, y); cout << ' ';
-			//y -= 1;//임시로 해논거임 여기서 말고 서버에서 패킷 받았을때 바꿔줘야함
-			sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, user->GetRoomUserKey(), inputKey);
-			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-		}
-		break;
-	case LEFT: //왼쪽
-		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1] - 2] == '#'){
-			//벽
-			return false;
-		}
-		else {
-			//gotoxy(x, y); cout << ' ';
-			//x -= 1;
-			sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, user->GetRoomUserKey(), inputKey);
-			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-		}
-		break;
-	case RIGHT: //오른쪽
-		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1]] == '#'){
-			//벽
-			return false;
-		}
-		else {
-			//gotoxy(x, y); cout << ' ';
-			//x += 1;
-			sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, user->GetRoomUserKey(), inputKey);
-			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-		}
-		break;
-	case DOWN: //아래
-		if (info.gameMap[user->wData.y[MyKey - 1]][user->wData.x[MyKey - 1] - 1] == '#'){
-			//벽
-			return false;
-		}
-		else {
-			//gotoxy(x, y); cout << ' ';
-			//y += 1;
-			sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, user->GetRoomUserKey(), inputKey);
-			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-		}
-		break;
+	case UP:
+		if (info.gameMap[user->wData.y[MyKey - 1] - 2][user->wData.x[MyKey - 1] - 1] == '#') return false;
+		else break;
+		//else {
+
+		//	sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, MyKey, inputKey);
+		//	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
+		//}
+	case LEFT:
+		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1] - 2] == '#') return false;
+		else break;
+	case RIGHT:
+		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1]] == '#') return false;
+		else break;
+	case DOWN:
+		if (info.gameMap[user->wData.y[MyKey - 1]][user->wData.x[MyKey - 1] - 1] == '#') return false;
+		else break;
 	default:
-		gotoxy(64, 1);
-		cout << "방향키만입력 (종료는q)" << endl;
 		return false;
 	}
-
+	sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, MyKey, inputKey);
+	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
 	return true;
 }
 void GamePlayClass::RecvPlayerPosition(char* input)
@@ -235,26 +226,34 @@ void GamePlayClass::RecvPlayerPosition(char* input)
 
 	switch (InputKey)
 	{
-	case UP://위로
+	case UP:
 
 		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.y[UserKey - 1] -= 1;
 		break;
-	case LEFT: //왼쪽
+	case LEFT:
 
 		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.x[UserKey - 1] -= 1;
 		break;
-	case RIGHT: //오른쪽
+	case RIGHT:
 
 		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.x[UserKey - 1] += 1;
 		break;
-	case DOWN: //아래
+	case DOWN:
 
 		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.y[UserKey - 1] += 1;
 		break;
 	}
 	gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << '*';
+}
+
+int GamePlayClass::GetRandomKey()
+{
+	Sleep(200);
+	int key[4] = { UP, DOWN, LEFT, RIGHT };
+
+	return key[rand() % 4];
 }

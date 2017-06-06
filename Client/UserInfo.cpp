@@ -11,6 +11,15 @@ UserInfo::UserInfo() :RoomState(false)
 UserInfo::~UserInfo()
 {
 }
+void UserInfo::initUserXY()
+{
+	wData.x[0] = 2;
+	wData.y[0] = 2;
+	wData.x[1] = 2 + 59;
+	wData.y[1] = 2;
+	wData.x[2] = 2;
+	wData.y[2] = 2 + 27;
+}
 void UserInfo::initUserInfoData()
 {
 	memset(id, 0, sizeof(id));
@@ -24,10 +33,12 @@ void UserInfo::initUserInfoData()
 	memset(wData.RoomName, 0, sizeof(wData.RoomName));
 	memset(wData.UserName, 0, sizeof(wData.UserName));
 	wData.RoomNum = 0;
+	wData.EndUserNum = 0;
 	for (int i = 0; i < 3; i++)
 	{
 		wData.UserState[i] = false;
 		wData.winCount[i] = 0;
+		wData.Rating[i] = 0;
 	}
 }
 UserInfo UserInfo::getUserInfoClass()

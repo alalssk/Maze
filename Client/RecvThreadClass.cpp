@@ -94,17 +94,6 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				}
 
 			}
-			
-			//char input[100]="";
-			//
-			//for (int i = 0; i < 5; i++)
-			//{
-			//	cin >> input;
-			//	cout << "input : "<<input<<endl;
-			//}
-			//tData.wRoom->WatingRoomMain();
-
-
 		}
 		else if (recvMsg[0] == '@')	//리퀘스트(req) 방만들기, 종료(로그아웃)요청완료 등 메시지 받는곳
 		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
@@ -186,9 +175,22 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				}
 			}
 		}
-		else if (recvMsg[0] == 'P')
+		else if (recvMsg[0] == 'P' && ClientMode == 3)
 		{//P유저키_방향키
 			tData.gPlay->RecvPlayerPosition(recvMsg + 1);
+		}
+		else if (recvMsg[0] == 'Q' && ClientMode == 3)
+		{//"Q유저키" 이게 세번(클라당 한번씩) 오면 게임 종료
+			int iUserKey;
+			iUserKey = atoi(recvMsg + 1);
+			tData.user->wData.Rating[iUserKey-1] = ++tData.user->wData.EndUserNum;
+			if (tData.user->wData.EndUserNum == tData.user->wData.ConnectUserNum)
+			{
+				ClientMode = 2;
+				tData.user->setClientMode(2);
+				
+
+			}
 		}
 		memset(recvMsg, 0, sizeof(recvMsg));
 

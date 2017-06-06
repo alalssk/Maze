@@ -35,6 +35,8 @@ bool ServerClass::ServerClassMain()
 	{
 		return false;
 	}
+	//TotalCreateRoomCount 받아옴
+	TotalCreateRoomCount = sDB.GetTotalCreateRoomCount();
 	//start socket
 	shareData->hServSock = GetListenSock(9191, SOMAXCONN);
 	if (shareData->hServSock == INVALID_SOCKET)
@@ -363,6 +365,41 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					//send >> P유저키_방향키
 
 				}
+				else if (ioInfo->buffer[0] == 'Q')
+				{//Q방번호_MyKey
+					list<ChatRoom>::iterator iter_game;
+					int iRoomNum, Mykey;
+					char *tmp;
+					char SendMsg[20] = "";
+					int SendMsgSz = 0;
+					tmp = strtok(ioInfo->buffer+1, "_");
+					iRoomNum = atoi(tmp);
+					tmp = strtok(NULL, "");
+					Mykey = atoi(tmp);
+					iter_game = shareData->GameRoomList.begin();
+					sprintf(SendMsg, "Q%d", Mykey);
+					SendMsgSz = strlen(SendMsg);
+					while (iter_game != shareData->GameRoomList.end())
+					{
+						if (iter_game->ChatRoomNum == iRoomNum)
+						{
+							/////
+							for (int i = 0; i < iter_game->UserCount; i++)
+							{
+								send(iter_game->hClntSock[i], SendMsg, SendMsgSz + 1, 0);
+							}
+//							iter_game = shareData->GameRoomList.erase(iter_game); //얘는 여기있으면 안댐 클라에서 따로 게임종료시 게임방뿌게라는 패킷을 보내자
+							cout << SendMsg << "가 경기를 끝냈습니다" << endl;
+							break;
+						}
+						else iter_game++;
+					}
+
+				}
+				else if (ioInfo->buffer[0] == 'q')
+				{//q방번호 -> 게임이 완전히 끝난경우
+					
+				}
 				/*WSARecv*/
 				delete ioInfo;
 				ioInfo = new OVER_DATA;
@@ -520,7 +557,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 	*Client_IDs[3]
 	*UserCount --> max=3
 	*/
-	char tmpRoomName[40] = "";
+	char tmpRoomName[255] = "";
 	char CreateRoomSendMsg[100] = "";
 	list<CLIENT_DATA>::iterator iter_user;
 	iter_user = lpComp->Clients.begin();
@@ -531,7 +568,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 			if (iter_user->MyRoom == 0)
 			{
 
-				sprintf(tmpRoomName, "[%s]님의 방입니다.", iter_user->name);
+				sprintf(tmpRoomName, "This room was made by %s.", iter_user->name);
 				strcpy(room.chatRoomName, tmpRoomName);
 				room.ChatRoomNum = TotalCreateRoomCount + 1;
 				strcpy(room.ClientsID[0], iter_user->name);
@@ -547,6 +584,7 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				EnterCriticalSection(&cs);//cs
 				lpComp->ChatRoomList.push_back(room);
 				TotalCreateRoomCount++;
+				sDB.CreateWaitingRoom(tmpRoomName, room.ChatRoomNum);//DB >> Room
 				LeaveCriticalSection(&cs);//cs
 				//방 만든놈한테만 방정보 전송
 

@@ -1,7 +1,7 @@
 #pragma once
 #include<my_global.h>
 #include<mysql.h>
-
+#include<Windows.h>
 #include<iostream>
 #include<string>
 
@@ -18,7 +18,7 @@ using namespace std;
 
 class ServerDB
 {
-
+	SYSTEMTIME sysTime;
 public:
 	typedef struct {
 		int win_count;
@@ -32,6 +32,13 @@ public:
 	bool Check_Password(char* id_pass);
 	bool OneIncreass_visit_count(string id);
 	bool GetUserWinCount(string id, int &win, int &play);//_IN, _OUT, _OUT
+	/*방관련 디비*/
+	bool CreateWaitingRoom(string, int);//방이름, 방번호
+	bool DeleteWaitingRoom(string, int);
+	bool StartPlayGame(int); //방번호
+	bool EndPlayGame(int);
+	int GetTotalCreateRoomCount();
+
 private:
 	MYSQL *connection = NULL, conn;
 
