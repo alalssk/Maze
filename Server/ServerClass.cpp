@@ -122,9 +122,6 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 				break;
 			}
 		}
-
-
-
 	}
 
 
@@ -584,7 +581,8 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				EnterCriticalSection(&cs);//cs
 				lpComp->ChatRoomList.push_back(room);
 				TotalCreateRoomCount++;
-				sDB.CreateWaitingRoom(tmpRoomName, room.ChatRoomNum);//DB >> Room
+				sDB.CreateWaitingRoom(tmpRoomName, room.ChatRoomNum);//DB >> room_tbl
+				sDB.JoinWaitingRoom(room.ChatRoomNum, iter_user->name);//DB >> visit_room_tbl
 				LeaveCriticalSection(&cs);//cs
 				//방 만든놈한테만 방정보 전송
 
@@ -638,10 +636,13 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 		{
 			if (iter_room->UserCount <= 1)
 			{//방에 나뿐이없으면 그냥 방 삭제
+				
 				iter_room = lpComp->ChatRoomList.erase(iter_room);
 				//방이 없어졌으니 새로운 방 정보들을 모든 클라에 send
 				iter_user->MyRoom = 0;
 				SendWaitingRoomList(lpComp);
+				sDB.DeleteWaitingRoom(RoomNum);//db >> room_tbl
+				sDB.ExitWaitingRoom(RoomNum, iter_user->name);//DB >> visit_room_tbl
 				return true;
 			}
 			else
@@ -668,6 +669,8 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 				}
 				iter_room->UserCount--;
 				iter_user->MyRoom = 0;
+				sDB.ExitWaitingRoom(RoomNum, iter_user->name);//DB >> visit_room_tbl
+
 				//============================유저리스트 전송부분============================
 				char ExitRoomSendMsg[100] = "";
 				int MsgSz;
@@ -735,6 +738,7 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 				iter_user->MyRoom = RoomNum;
 				strcpy(iter_room->ClientsID[iter_room->UserCount], iter_user->name);
 				iter_room->hClntSock[iter_room->UserCount++] = iter_user->hClntSock;
+				sDB.JoinWaitingRoom(RoomNum, iter_user->name);// DB >> visit_room_tbl
 				LeaveCriticalSection(&cs);//cs
 				sprintf(JoinRoomSendMsg, "@J1_%d_%s", iter_room->ChatRoomNum, iter_room->chatRoomName);
 				send(sock, JoinRoomSendMsg, strlen(JoinRoomSendMsg), 0);
@@ -940,6 +944,14 @@ const bool ServerClass::SetStartRoom(LPShared_DATA lpComp, int RoomNum) //게임이
 				room_game.hClntSock[i] = iter_room->hClntSock[i];
 				room_game.UserState[i] = iter_room->UserState[i];
 			}
+
+			sDB.StartPlayGame(RoomNum);							//DB >> game_tbl(insert)
+			room_game.gameID = sDB.GetPlayingGameID(RoomNum);	//DB >> game_tbl(select)
+			for (int i = 0; i < room_game.UserCount; i++)		//DB >> play_game_tbl(insert)
+			{
+				sDB.GamePlayUserLog(room_game.gameID, iter_room->ClientsID[i]);
+			}
+
 			lpComp->GameRoomList.push_back(room_game);
 
 			return true;
@@ -988,7 +1000,9 @@ const bool ServerClass::DeleteStartRoom(LPShared_DATA lpComp, int RoomNum)
 	{
 		if (iter_game->ChatRoomNum == RoomNum)
 		{
+			sDB.EndPlayGame(iter_game->gameID);				//DB >> game_tbl(update)
 			iter_game = lpComp->GameRoomList.erase(iter_game);
+			
 			return true;
 		}
 		else iter_game++;

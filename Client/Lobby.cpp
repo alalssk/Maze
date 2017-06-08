@@ -26,7 +26,7 @@ const int Lobby::LobbyMain()
 	{
 		key = getKeyDirectionCheck();
 		Linfo.SetLobbyFlag(key);
-		
+
 		if (Linfo.GetLobbyFlag() == false)
 		{
 			if (key == SPACE || key == ENTER)
@@ -117,9 +117,10 @@ const int Lobby::LobbyMain()
 				tmp = strtok(Linfo.WaitingRoomList[Linfo.GetLobbyListPointNumber()], ".");
 				tmp = strtok(NULL, ">");
 				iRoomNum = atoi(tmp);
+
 				if (req_EnterWaitingRoom(iRoomNum))//방입장성공
 				{
-					
+
 					return 3;
 				}
 				else
@@ -148,7 +149,7 @@ const int Lobby::LobbyMain()
 				PrintLobbyTxt();
 			}
 
-			
+
 
 		}
 
@@ -220,7 +221,7 @@ bool Lobby::req_CreateRoom()
 	send(sock, "@R", 2, 0);
 	//cout << "방생성요청보냄" << endl;
 	DWORD ret;
-	ret = WaitForSingleObject(hLobbyEventForRequest,3000);
+	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
 	if (ret == WAIT_TIMEOUT) return false;
 	else return true;
 }
@@ -244,14 +245,25 @@ bool Lobby::req_ExitClient()
 }
 bool Lobby::req_EnterWaitingRoom(int RoomNum)
 {
-	char sendstr[7];//@G_9999
+	char sendstr[10];//@G_9999
 	sprintf(sendstr, "@J_%d", RoomNum);
-	send(sock, sendstr, 7, 0);
+	send(sock, sendstr, strlen(sendstr) + 1, 0);
+
 	//cout << "게임종료요청보냄" << endl;
-	DWORD ret;
-	ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
-	if (ret == WAIT_TIMEOUT) return false;
-	else return true;
+	//DWORD ret;
+	//ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
+	//if (ret == WAIT_TIMEOUT) return false;
+	//else return true;
+	switch (WaitForSingleObject(hLobbyEventForRequest, 5000))
+	{
+	case WAIT_TIMEOUT:
+		return false; break;
+	case WAIT_OBJECT_0:
+		return true; break;
+	default:
+		return false; break;
+	}
+
 }
 void Lobby::PrintWaitionRoomList()
 {
@@ -268,9 +280,9 @@ void Lobby::GetWaitionRoomList(char *buf)
 	//WaitingRoomCount
 	char *tmp;
 	int iRoomCount;
-	
+
 	memset(Linfo.WaitingRoomList, 0, sizeof(Linfo.WaitingRoomList));//2차원배열(tmp[max][max]) 초기화하는 법 확실하게 테스트 하자
-																	//memset(tmp,0,sizeof(tmp)) 해도 2차원 다 초기화 된다.
+	//memset(tmp,0,sizeof(tmp)) 해도 2차원 다 초기화 된다.
 	if (buf[0] == '0')
 	{//방이없음
 		Linfo.WaitingRoomListNum = 0;
@@ -285,7 +297,7 @@ void Lobby::GetWaitionRoomList(char *buf)
 		{
 			tmp = strtok(NULL, "_");
 			strcpy(Linfo.WaitingRoomList[i], tmp);
-			
+
 		}
 	}
 	Linfo.initLobbyListPointNumber();

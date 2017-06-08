@@ -27,6 +27,7 @@ class Lobby :protected grideXY
 	bool req_LogoutClient();
 	bool req_GetWaitingRoom();
 	bool req_EnterWaitingRoom(int RoomNum);
+	//bool req_EnterWaitingRoom(char* );
 	void setSock(SOCKET sock);
 
 	void PrintWaitionRoomList();//얘는 ConnectToServer의 Recv쓰레드 안에서만 호출함

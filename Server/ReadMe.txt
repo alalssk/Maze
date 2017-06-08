@@ -194,3 +194,18 @@
 		- DeleteWaitingRoom() 구현 하기 전에 room_id 와 room_num 의 무결성? 위반 어케 바꿔야될지 생각.....room_id 연동 시켰음 room_tbl의 room_num 지우면 됨
 		- 한글 입력관련(DB에 한글이 안드가네 뭐가 문제지)....그냥 다 영어로 바꾸겠음. >> DB문제는 아님 mysql_query()함수가 한글이 안대는듯 이 함수에 입력하기전까진 분명히 한글이 깨기지않음.
 		- 
+
+
+	0608
+
+
+	***** GetTotalCreateRoomCount() 의 query 부분에서 max를 사용하면 user_tbl에 값이 없을때 프로그렘 실행시 에러남 >> 이 경우를 피하려면 count 쿼리를 쓰면 된다.
+
+	***** room_tbl 의 auto_increment를 1로 초기화를 해야되는데 안대네?
+		- "ALTER TABLE uer_tbl AUTO_INCREMENT = 1;" 이 쿼리를 실행해도 다음에 insert 할때 최대값으로 들어감
+
+	>> 게임종료시 end처리만 해주면됨
+		- sDB.EndPlayGame(gameNum)
+		- (update) game_tbl.state ---> 'END' 로 변경
+		- (update) 종료 시간 추가
+		- 일단 위에껀 해놨음 (DB쪽) 이제 클라에서 종료 패킷 보내고 서버에서 받으면 ServerClass의 DeleteStartRoom()함수를 호출하면됨
