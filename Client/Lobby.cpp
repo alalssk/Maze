@@ -262,7 +262,7 @@ bool Lobby::req_EnterWaitingRoom(int RoomNum)
 }
 void Lobby::PrintWaitingRoomList()
 {
-	PrintWaitingRoomList();
+	initPrintWaitingRoomList();
 	gotoxy(0, 0); Sleep(100);
 	for (int i = 0; i < Linfo.WaitingRoomListNum; i++)
 	{
