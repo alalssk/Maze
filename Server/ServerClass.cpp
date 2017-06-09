@@ -397,7 +397,9 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				{//q방번호 -> 게임이 완전히 끝난경우
 					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
 					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
+					PlusWinCount(shareData, sock);
 					//방지우기가 완료되면 여기에 해당 패킷을 보낸 녀석의 winCount를 증가시켜줄까?
+					
 				}
 				/*WSARecv*/
 				delete ioInfo;
@@ -1003,6 +1005,10 @@ const bool ServerClass::DeleteStartRoom(LPShared_DATA lpComp, int RoomNum)
 		if (iter_game->ChatRoomNum == RoomNum)
 		{
 			sDB.EndPlayGame(iter_game->gameID);				//DB >> game_tbl(update)
+			for (int i = 0; i < iter_game->UserCount; i++)	//DB >> user_tbl(update)
+			{
+				sDB.PlusPlayCount(iter_game->ClientsID[i]);
+			}
 			iter_game = lpComp->GameRoomList.erase(iter_game);
 			
 			return true;
@@ -1032,4 +1038,20 @@ void ServerClass::SendUserInputKey_GamePlay(LPShared_DATA lpComp, int room, int 
 		}
 		else iter_game++;
 	}
+}
+const bool ServerClass::PlusWinCount(LPShared_DATA lpComp, SOCKET sock)
+{
+	list<CLIENT_DATA>::iterator iter_user;
+	iter_user = lpComp->Clients.begin();
+	while (iter_user != lpComp->Clients.end())
+	{
+		if (iter_user->hClntSock == sock)
+		{
+			iter_user->win_count++;
+			sDB.PlusWinCount(iter_user->name);	//DB user_tbl >> update
+			return true;
+		}
+		else iter_user++;
+	}
+	return false;
 }

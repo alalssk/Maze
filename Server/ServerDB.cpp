@@ -350,3 +350,20 @@ bool ServerDB::PlusWinCount(char *UserName)
 	}
 	return true;
 }
+bool ServerDB::PlusPlayCount(char *UserName)
+{
+
+	int query_stat;
+	string sUserName;
+	sUserName = UserName;
+	string query = "update user_tbl set play_count = play_count +1 where user_id = '" + sUserName + "'";
+	// update game_tbl set end_time = '2017-06-08 09:00:00', state = 'END' where state = 'PLAYING' and room_id = '1018';
+	query_stat = mysql_query(connection, query.c_str());
+	if (query_stat != 0)
+	{
+		fprintf(stderr, "[PlusWinCount]Mysql query error : %s\n", mysql_error(&conn));
+		cout << "[DB_ERROR] " << query << endl;
+		return false;
+	}
+	return true;
+}

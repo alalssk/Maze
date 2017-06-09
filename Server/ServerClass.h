@@ -94,6 +94,7 @@ class ServerClass
 	static void SendUserInputKey_GamePlay(LPShared_DATA, int, int, int);
 	static const bool SetStartRoom(LPShared_DATA lpComp, int RoomNum);
 	static const bool DeleteStartRoom(LPShared_DATA lpComp, int RoomNum);
+	static const bool PlusWinCount(LPShared_DATA lpComp, SOCKET sock);//1등인 유저의 소캣을 인자로
 	static unsigned __stdcall AcceptThread(PVOID pServSock);
 	bool Create_IOCP_ThreadPool();
 	static unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);

@@ -43,7 +43,7 @@ public:
 	int GetPlayingGameID(int roomNum); //방번호 select
 	bool GamePlayUserLog(int iRoomNum, char*UserName);//방번호, 유저이름(user_id)  insert >> play_game_tbl
 	bool PlusWinCount(char *UserName);	//유저이름, update >> user_tbl
-
+	bool PlusPlayCount(char * UserName);//유저이름, update >> user_tbl
 	int GetTotalCreateRoomCount();
 private:
 	MYSQL *connection = NULL, conn;
