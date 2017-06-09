@@ -28,6 +28,7 @@ public:
 	void SetWaitingRoomFlag(const int key);// chat or choose(start, exit)
 	const int GetWaitingRoomTxtNum();
 	void SetWaitingRoomTxtNum(const int key); //start or exit
+	void initWaitingRoomInfo();
 	//
 
 

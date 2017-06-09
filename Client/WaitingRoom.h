@@ -24,6 +24,7 @@ public:
 	/*chat*/
 	void AllClear();
 	void PrintStartGameMsg();
+	void initWaitingRoom();
 private:
 	bool req_ExitWaitingRoom();//@E_[¹æ¹øÈ£]_[ID]
 

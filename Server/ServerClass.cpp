@@ -395,7 +395,9 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				}
 				else if (ioInfo->buffer[0] == 'q')
 				{//q방번호 -> 게임이 완전히 끝난경우
-					
+					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
+					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
+					//방지우기가 완료되면 여기에 해당 패킷을 보낸 녀석의 winCount를 증가시켜줄까?
 				}
 				/*WSARecv*/
 				delete ioInfo;

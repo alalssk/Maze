@@ -76,6 +76,8 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 대기방 방에 접속한 애들은 게임플레이를 준비하라
 				{
 					ClientMode = 3; tData.user->setClientMode(3);
+					tData.wRoom->initWaitingRoom();
+					// *** 이 초기화를 안해주면 게임 시작할때 방장이 아닌 다른 클라에서 WRinfo의 WaitingRoomTxtNum이 2인상태로 키를 누르기 때문에 종료요청을 보내게됨.
 					tData.wRoom->PrintStartGameMsg();
 				}
 				

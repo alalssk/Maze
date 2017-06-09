@@ -10,6 +10,11 @@ WaitingRoomInfo::~WaitingRoomInfo()
 {
 	Roomlist.clear();
 }
+void WaitingRoomInfo::initWaitingRoomInfo()
+{
+	this->WaitingRoomFlag = false;
+	this->WaitingRoomTxtNum = 1;
+}
 const bool WaitingRoomInfo::GetWaitingRoomFlag()
 {
 	return this->WaitingRoomFlag;

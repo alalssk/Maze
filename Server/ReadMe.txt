@@ -209,3 +209,10 @@
 		- (update) game_tbl.state ---> 'END' 로 변경
 		- (update) 종료 시간 추가
 		- 일단 위에껀 해놨음 (DB쪽) 이제 클라에서 종료 패킷 보내고 서버에서 받으면 ServerClass의 DeleteStartRoom()함수를 호출하면됨
+
+	0609
+
+	>> 게임이 시작될때 특정 클라에서 키를 누르면 게임이 종료가 되는 현상이있었음.
+		- 방장이 아닌 다른 클라에서 WRinfo의 WaitingRoomTxtNum이 2인상태로 키를 누르기 때문에 종료요청을 보내게됨.
+		- 떄문에 Recv쓰레드에서 게임요청 패킷을 서버로 부터 받으면 tData.wRoom->initWaitingRoom(); 를 해주고 초기화함. 
+	>> 일단 게임종료시 디비에 END써주는거까지 해놨음. 이제 wincount, playcount 만 하면댐

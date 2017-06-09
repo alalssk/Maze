@@ -78,9 +78,9 @@ int GamePlayClass::mazeGameMain()
 
 		if (finalPoint())//골인지점 아얘 바꿔야 한다.
 		{
-			char SendMsg[20] = "";
-			sprintf(SendMsg, "Q%d_%d", user->wData.RoomNum, MyKey);
-			send(sock, SendMsg, strlen(SendMsg) + 1, 0);
+			char SendInputKeyMsg[20] = "";
+			sprintf(SendInputKeyMsg, "Q%d_%d", user->wData.RoomNum, MyKey);
+			send(sock, SendInputKeyMsg, strlen(SendInputKeyMsg) + 1, 0);
 
 			while (user->wData.EndUserNum < user->wData.ConnectUserNum) 
 			{
@@ -100,13 +100,19 @@ int GamePlayClass::mazeGameMain()
 				}
 				Sleep(500);
 			}
-
+			if (user->wData.Rating[MyKey-1] == 1)
+			{//일단 임시로 1등만 게임종료패킷을 서버로 보내도록
+				memset(SendMsg, 0, sizeof(SendMsg));
+				sprintf(SendMsg, "q%d",user->wData.RoomNum);//지금은 "q방번호" 만 보내지만 나중에는 "q반번호_걸린시간(세명이 게임끝내는대 걸린시간)"을 보내자
+				send(sock, SendMsg, strlen(SendMsg) + 1, 0);
+			}
 			/*클라초기화*/
 			ClearXY();
 			user->initUserXY();
 			for (int i = 0; i < user->wData.ConnectUserNum; i++)
 			{
 				user->wData.UserState[i] = false;
+				user->wData.Rating[i] = 0;
 			}
 			user->wData.EndUserNum = 0;//endUserNum 초기화
 			/*클라초기화*/
@@ -194,11 +200,6 @@ bool GamePlayClass::SendInputKey(int inputKey)
 	case UP:
 		if (info.gameMap[user->wData.y[MyKey - 1] - 2][user->wData.x[MyKey - 1] - 1] == '#') return false;
 		else break;
-		//else {
-
-		//	sprintf(SendMsg, "P%d_%d_%d", user->wData.RoomNum, MyKey, inputKey);
-		//	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-		//}
 	case LEFT:
 		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1] - 2] == '#') return false;
 		else break;

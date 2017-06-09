@@ -20,6 +20,10 @@ void WaitingRoom::PrintStartGameMsg()
 	gotoxy(12, 16); cout << "|           Press any key for start game           |";
 	gotoxy(12, 17); cout << "+--------------------------------------------------+";
 }
+void WaitingRoom::initWaitingRoom()
+{
+	WRinfo.initWaitingRoomInfo();
+}
 void WaitingRoom::setUserInfo(UserInfo *input_user)
 {
 	user = input_user;
