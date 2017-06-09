@@ -20,7 +20,7 @@ const int Lobby::LobbyMain()
 	Sleep(50);
 	req_GetWaitingRoom();
 	Sleep(50);
-	PrintWaitionRoomList();
+	PrintWaitingRoomList();
 	PrintLobbyTxt();
 	while (1)
 	{
@@ -100,7 +100,7 @@ const int Lobby::LobbyMain()
 				initRoomListCheck();
 				AllClearPrintLobbyTxtBox();
 				GrideBox(46, 6 + (Linfo.GetLobbyTxtNum() * 3), 1, 6);
-				//PrintWaitionRoomList();
+				//PrintWaitingRoomList();
 				PrintLobbyTxt();
 			}
 		}
@@ -142,7 +142,7 @@ const int Lobby::LobbyMain()
 			{
 				Linfo.SetLobbyListPointNumber(key);
 				initRoomListCheck();
-				PrintWaitionRoomList();
+				PrintWaitingRoomList();
 				PrintLobbyListCheck(Linfo.GetLobbyListPointNumber());
 
 				AllClearPrintLobbyTxtBox();
@@ -249,11 +249,6 @@ bool Lobby::req_EnterWaitingRoom(int RoomNum)
 	sprintf(sendstr, "@J_%d", RoomNum);
 	send(sock, sendstr, strlen(sendstr) + 1, 0);
 
-	//cout << "게임종료요청보냄" << endl;
-	//DWORD ret;
-	//ret = WaitForSingleObject(hLobbyEventForRequest, 3000);
-	//if (ret == WAIT_TIMEOUT) return false;
-	//else return true;
 	switch (WaitForSingleObject(hLobbyEventForRequest, 5000))
 	{
 	case WAIT_TIMEOUT:
@@ -265,9 +260,9 @@ bool Lobby::req_EnterWaitingRoom(int RoomNum)
 	}
 
 }
-void Lobby::PrintWaitionRoomList()
+void Lobby::PrintWaitingRoomList()
 {
-	initPrintWaitingRoomList();
+	PrintWaitingRoomList();
 	gotoxy(0, 0); Sleep(100);
 	for (int i = 0; i < Linfo.WaitingRoomListNum; i++)
 	{
@@ -275,7 +270,7 @@ void Lobby::PrintWaitionRoomList()
 
 	}
 }
-void Lobby::GetWaitionRoomList(char *buf)
+void Lobby::GetWaitingRoomList(char *buf)
 {//[방개수]_[No.[방번호] 방이름]_[방이름]_[방이름]
 	//WaitingRoomCount
 	char *tmp;
@@ -301,7 +296,7 @@ void Lobby::GetWaitionRoomList(char *buf)
 		}
 	}
 	Linfo.initLobbyListPointNumber();
-	PrintWaitionRoomList();
+	PrintWaitingRoomList();
 
 }
 

@@ -46,21 +46,7 @@ int LoginMainInfo::getServerNum()
 	return this->serverNum;
 }
 
-/*ID Password 관련*/
-//void LoginMainInfo::setUserID(char* userID)
-//{
-//	if (strlen(this->userID) > strlen(userID)) //백스페이스가 눌린 경우임!
-//	{
-//		memset(this->userID, 0, sizeof(this->userID));
-//	}
-//	strcpy(this->userID, userID);
-//	setUserIdSz(strlen(this->userID));
-//
-//}
-//void LoginMainInfo::setUserIdSz(int size)
-//{
-//	this->inputIdSz = size;
-//}
+
 int LoginMainInfo::cInputUserID(char key)
 {
 	if (key >= 48 && key <= 122)//알파뱃과 일부 분자만 가능하게 바꾸자
@@ -85,19 +71,6 @@ char* LoginMainInfo::getUserId()
 	return this->userID;
 }
 
-//void LoginMainInfo::setUserPass(char* userPass)
-//{
-//	if (strlen(this->userPass) > strlen(userPass))
-//	{
-//		memset(this->userPass, 0, sizeof(this->userPass));
-//	}
-//	strcpy(this->userPass, userPass);
-//	setUserPassSz(strlen(this->userPass));
-//}
-//void LoginMainInfo::setUserPassSz(int size)
-//{
-//	this->inputPassSz = size;
-//}
 int LoginMainInfo::cInputUserPass(char key)
 {
 	if (key >= 48 && key <= 122)//알파뱃과 일부 분자만 가능하게 바꾸자

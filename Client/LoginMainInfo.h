@@ -26,14 +26,10 @@ public:
 	void setServerMinus();
 	int getServerNum();
 
-	//void setUserID(char*);
-	//void setUserIdSz(int);
 	int cInputUserID(char key);
 	int getUserIdSz();
 	char* getUserId();
 
-	//void setUserPass(char*);
-	//void setUserPassSz(int);
 	int cInputUserPass(char key);
 	int getUserPassSz();
 	char* getUserPass();

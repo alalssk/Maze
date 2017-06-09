@@ -15,10 +15,6 @@ private:
 	SOCKET Sock;
 	SOCKADDR_IN servAddr;
 
-
-
-	//	char ID_Pass[ID_PASS_SIZE];
-
 public:
 	ConnectToServer();
 	 ~ConnectToServer();

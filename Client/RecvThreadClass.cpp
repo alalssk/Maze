@@ -51,8 +51,8 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
 			//!0 이면 방이없다는 말임
 			//일단 서버에서 ! 요고만 보내고 방정보 함수가 제대로 동작하는지 체크하자
-			if (recvMsg[1] == '0')tData.lobby->GetWaitionRoomList("0");
-			else tData.lobby->GetWaitionRoomList(recvMsg + 1);
+			if (recvMsg[1] == '0')tData.lobby->GetWaitingRoomList("0");
+			else tData.lobby->GetWaitingRoomList(recvMsg + 1);
 
 			memset(recvMsg, 0, sizeof(recvMsg));
 		}
