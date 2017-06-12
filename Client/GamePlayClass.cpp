@@ -20,7 +20,7 @@ int GamePlayClass::mazeGameMain()
 	sock = user->getSocket();
 
 	MyKey = user->GetRoomUserKey();
-	user->initUserXY();
+	user->wData.initUserXY();
 
 	ClearXY();
 	info.ReadMap();
@@ -61,10 +61,10 @@ int GamePlayClass::mazeGameMain()
 
 	gotoxy(1, 1);
 	info.grideMap();
-	gotoxy(user->wData.x[0], user->wData.y[0]); 
-	cout << '*';
-	gotoxy(user->wData.x[1], user->wData.y[1]); cout << '*';
-	gotoxy(user->wData.x[2], user->wData.y[2]); cout << '*';
+	DrawXY(user->wData.GetUserX(1), user->wData.GetUserY(1), "*");
+	DrawXY(user->wData.GetUserX(2), user->wData.GetUserY(2), "*");
+	DrawXY(user->wData.GetUserX(3), user->wData.GetUserY(3), "*");
+
 	while (1)
 	{
 
@@ -88,11 +88,13 @@ int GamePlayClass::mazeGameMain()
 
 				for (int i = 0; i < user->wData.ConnectUserNum; i++)
 				{
-					gotoxy(64 + 13, 20 + i); cout << "           ";
+					//gotoxy(64 + 13, 20 + i); cout << "           ";
+					DrawXY(64 + 13, 20 + i, "           ");
 				}
 				for (int i = 0; i < user->wData.ConnectUserNum; i++)
 				{
-					gotoxy(64, 20 + i); cout<< user->wData.UserName[i]; 
+					//gotoxy(64, 20 + i); cout<< user->wData.UserName[i]; 
+					DrawXY(64, 20 + i, user->wData.UserName[i]);
 					gotoxy(64 + 13, 20 + i); 
 					if (user->wData.Rating[i] == 0)
 						cout << ">>진행중"; 
@@ -109,7 +111,7 @@ int GamePlayClass::mazeGameMain()
 			}
 			/*클라초기화*/
 			ClearXY();
-			user->initUserXY();
+			user->wData.initUserXY();
 			for (int i = 0; i < user->wData.ConnectUserNum; i++)
 			{
 				user->wData.UserState[i] = false;
@@ -186,7 +188,7 @@ void GamePlayClass::EndingSubLoop(int a, char c)//ENDING
 bool GamePlayClass::finalPoint()
 {
 	//info.GetGameMapValue(user) == 'F'
-	if (info.gameMap[user->wData.y[MyKey-1] - 1][user->wData.x[MyKey-1] - 1] == 'F')
+	if (info.gameMap[user->wData.GetUserY(MyKey) - 1][user->wData.GetUserX(MyKey) - 1] == 'F')
 	{
 		return TRUE;
 	}
@@ -200,16 +202,16 @@ bool GamePlayClass::SendInputKey(int inputKey)
 	switch (inputKey)
 	{
 	case UP:
-		if (info.gameMap[user->wData.y[MyKey - 1] - 2][user->wData.x[MyKey - 1] - 1] == '#') return false;
+		if (info.gameMap[user->wData.GetUserY(MyKey) - 2][user->wData.GetUserX(MyKey) - 1] == '#') return false;
 		else break;
 	case LEFT:
-		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1] - 2] == '#') return false;
+		if (info.gameMap[user->wData.GetUserY(MyKey) - 1][user->wData.GetUserX(MyKey) - 2] == '#') return false;
 		else break;
 	case RIGHT:
-		if (info.gameMap[user->wData.y[MyKey - 1] - 1][user->wData.x[MyKey - 1]] == '#') return false;
+		if (info.gameMap[user->wData.GetUserY(MyKey) - 1][user->wData.GetUserX(MyKey)] == '#') return false;
 		else break;
 	case DOWN:
-		if (info.gameMap[user->wData.y[MyKey - 1]][user->wData.x[MyKey - 1] - 1] == '#') return false;
+		if (info.gameMap[user->wData.GetUserY(MyKey)][user->wData.GetUserX(MyKey) - 1] == '#') return false;
 		else break;
 	default:
 		return false;
@@ -226,25 +228,11 @@ void GamePlayClass::RecvPlayerPosition(char* input)
 	UserKey = atoi(tmp);
 	tmp = strtok(NULL, "");
 	InputKey = atoi(tmp);
-	DrawXY(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1], ' ');
-	switch (InputKey)
-	{
-	case UP:
-		//user->wData.SetPosition(InputKey);
-		user->wData.y[UserKey - 1] -= 1;
-		break;
-	case LEFT:
-		user->wData.x[UserKey - 1] -= 1;
-		break;
-	case RIGHT:
-		user->wData.x[UserKey - 1] += 1;
-		break;
-	case DOWN:
-		user->wData.y[UserKey - 1] += 1;
-		break;
-	}
 
-	DrawXY(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1], '*');
+	DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), " ");
+	user->wData.SetPositionXY(InputKey, UserKey);
+	DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), "*");
+
 }
 
 int GamePlayClass::GetRandomKey()

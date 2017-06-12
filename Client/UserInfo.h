@@ -1,11 +1,12 @@
 #pragma once
 #include<iostream>
 #include<Windows.h>
+#include"grideXY.h"
 /*User Infomation*/
 #define USER_ID_SIZE 13
 #define USER_PASS_SIZE 20
+#define MAX_USERNUM 3
 /*User Infomation*/
-
 class UserInfo
 {
 	char id[USER_ID_SIZE];
@@ -14,7 +15,7 @@ class UserInfo
 	int WinCount;
 	int RoomUserKey;//1~3 1이면 방장
 	SOCKET sock;
-	int ClientMode;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
+//	int ClientMode;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
 
 
 
@@ -22,6 +23,14 @@ class UserInfo
 public:
 	UserInfo();
 	~UserInfo();
+	enum GameState
+	{
+		LOGIN = 0,
+		LOBBY,
+		WAIT_ROOM,
+		GAMEPLAY,
+		GAMERESULT,
+	};
 	void initUserInfoData();
 	bool setID(char*);
 	char* getID();
@@ -36,9 +45,11 @@ public:
 	void setWaitingRoomUserList(char*);
 	bool setRoomState(bool);
 	bool getRoomState();
-	void setClientMode(int);
-	int getClientMode();
+	void setClientMode(GameState );
+//	GameState getClientMode();
 	void setRoomUserKey();
+
+	bool IsCurrentClientMode(GameState state);
 	typedef struct RoomData
 	{
 		int RoomNum;
@@ -49,26 +60,41 @@ public:
 		int Rating[3];
 		int EndUserNum;
 		int ConnectUserNum;
-		//void SetPosition(input key);
-		void SetPositionX(int _x, int userNum)
-		{ 
-			/*
-			if (userNum <= MAX_USERNUM)
+		//int x[3], y[3];
+		void SetPositionXY(int key, int UserKey)
+		{
+			switch (key)
 			{
-				x[userNum] = _x;
+			case UP:
+				y[UserKey - 1] -= 1;
+				break;
+			case LEFT:
+				x[UserKey - 1] -= 1;
+				break;
+			case RIGHT:
+				x[UserKey - 1] += 1;
+				break;
+			case DOWN:
+				y[UserKey - 1] += 1;
+				break;
 			}
-			else
-			{
-				LOG("error RoomData Set Position - over Max UserNum")
-			}*/
 		}
-		void SetPositionY(int _y, int userNum) { y[userNum] = _y; }
+		void initUserXY()
+		{
+			x[0] = 2;
+			y[0] = 2;
+			x[1] = 2 + 59;
+			y[1] = 2;
+			x[2] = 2;
+			y[2] = 2 + 27;
+		}
+		int GetUserX(int UserKey){ return x[UserKey - 1]; }
+		int GetUserY(int UserKey){ return y[UserKey - 1]; }
 	private:
-		// UserNuM
+	//	// UserNuM
 		int x[3], y[3];
 	}WaitingRoom_Data;
-	
-	void initUserXY();
+	GameState ClientMode;
 	int GetRoomUserKey();
 	void ExitWaitingRoom();
 

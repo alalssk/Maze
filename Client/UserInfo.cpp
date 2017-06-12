@@ -12,16 +12,7 @@ UserInfo::UserInfo()
 UserInfo::~UserInfo()
 {
 }
-void UserInfo::initUserXY()
-{
 
-	wData.x[0] = 2;
-	wData.y[0] = 2;
-	wData.x[1] = 2 + 59;
-	wData.y[1] = 2;
-	wData.x[2] = 2;
-	wData.y[2] = 2 + 27;
-}
 void UserInfo::initUserInfoData()
 {
 	memset(id, 0, sizeof(id));
@@ -29,7 +20,7 @@ void UserInfo::initUserInfoData()
 	memset(userID_Password_for_send, 0, sizeof(userID_Password_for_send));
 	WinCount = 0;
 	sock = NULL;
-	this->ClientMode = 0;
+	setClientMode(GameState::LOGIN);
 	RoomUserKey = 0;
 	wData.ConnectUserNum = 0;
 	memset(wData.RoomName, 0, sizeof(wData.RoomName));
@@ -163,13 +154,18 @@ void UserInfo::ExitWaitingRoom()
 	setRoomState(false);
 
 }
-void UserInfo::setClientMode(int Mode)
+void UserInfo::setClientMode(GameState Mode)
 {
 	this->ClientMode = Mode;
 }
-int UserInfo::getClientMode()
+//GameState UserInfo::getClientMode()
+//{ 
+//	return this->ClientMode;
+//}
+bool UserInfo::IsCurrentClientMode(GameState Mode)
 {
-	return this->ClientMode;
+	if (this->ClientMode == Mode)return true;
+	else return false;
 }
 int UserInfo::GetRoomUserKey()
 {

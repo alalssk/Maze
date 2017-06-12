@@ -1,6 +1,5 @@
 #include "RecvThreadClass.h"
 
-int RecvThreadClass::ClientMode = 0;//로그인화면(0), 로비(1), 대기방(2), 게임중(3);
 bool RecvThreadClass::threadOn = false;//임시
 bool RecvThreadClass::ExitFlag = false;
 bool RecvThreadClass::LogoutFlag = false;
@@ -46,7 +45,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 		if (strLen == -1)
 			return -1;
 
-		if (recvMsg[0] == '!' && ClientMode == 1)
+		if (recvMsg[0] == '!' && tData.user->IsCurrentClientMode(tData.user->GameState::LOBBY))
 		{
 			//방정보 받아옴==> !"방개수"_"No.[방번호]>> [방이름]"_...
 			//!0 이면 방이없다는 말임
@@ -75,14 +74,15 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (tData.user->wData.RoomNum == atoi(recvMsg + 3))// "$R_방번호" 이 대기방 방에 접속한 애들은 게임플레이를 준비하라
 				{
-					ClientMode = 3; tData.user->setClientMode(3);
+					tData.user->setClientMode(tData.user->GAMEPLAY);
 					tData.wRoom->initWaitingRoom();
 					// *** 이 초기화를 안해주면 게임 시작할때 방장이 아닌 다른 클라에서 WRinfo의 WaitingRoomTxtNum이 2인상태로 키를 누르기 때문에 종료요청을 보내게됨.
 					tData.wRoom->PrintStartGameMsg();
 				}
 				
 			}
-			else if (recvMsg[1] == 'S' && ClientMode ==3)// $S관련 패킷은 클라모드가 GamePlay(3)인 상태에만 처리한다.
+			else if (recvMsg[1] == 'S' && 
+				tData.user->IsCurrentClientMode(tData.user->GAMEPLAY))// $S관련 패킷은 클라모드가 GamePlay(3)인 상태에만 처리한다.
 			{//$S1_[ID] 애당 아이디 게임준비상태
 				if (recvMsg[2] == '1')
 				{
@@ -101,7 +101,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 		{							//방생성 실패 성공(@R0, @R1), 종료요청완료(@E1), 로그아웃
 			if (recvMsg[1] == 'R')
 			{
-				if (recvMsg[2] == '1' && ClientMode == 1)
+				if (recvMsg[2] == '1' && tData.user->IsCurrentClientMode(tData.user->LOBBY))
 				{
 					////////////////
 					//만들었으니까 방정보를 받아와야겠지
@@ -110,7 +110,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 					if (!tData.user->getRoomState())//방이없는경우(RoomState==false)
 					{
 						tData.user->setWaitingRoomData(recvMsg + 4); //[방번호]_[방제목]
-						ClientMode = 2; tData.user->setClientMode(2);
+						tData.user->setClientMode(tData.user->WAIT_ROOM);
 						SetEvent(tData.lobby->hLobbyEventForRequest);
 					}
 					else
@@ -148,9 +148,9 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (recvMsg[2] == '1')
 				{
-					if (ClientMode == 2)//대기방상태일때만
+					if (tData.user->IsCurrentClientMode(tData.user->WAIT_ROOM))//대기방상태일때만
 					{
-						ClientMode = 1; tData.user->setClientMode(1);
+						tData.user->setClientMode(tData.user->LOBBY);
 						SetEvent(tData.wRoom->hWaitingRoomEventForRequest);
 					}
 				}
@@ -159,17 +159,17 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			{
 				if (recvMsg[2] == '1')
 				{
-					if (ClientMode == 1)//로비상태일떄만
+					if (tData.user->IsCurrentClientMode(tData.user->LOBBY))//로비상태일떄만
 					{
 						tData.user->setWaitingRoomData(recvMsg + 4);
-						ClientMode = 2; tData.user->setClientMode(2);
+						tData.user->setClientMode(tData.user->WAIT_ROOM);
 						SetEvent(tData.lobby->hLobbyEventForRequest);
 					}
 				}
 			}
 			else if (recvMsg[1] == 'U')
 			{//@U1_[이름]-승수_[이름-승수]
-				if (recvMsg[2] == '1' && ClientMode == 2)
+				if (recvMsg[2] == '1' && tData.user->IsCurrentClientMode(tData.user->WAIT_ROOM))
 				{
 					tData.user->setWaitingRoomUserList(recvMsg + 4);
 					tData.user->setRoomUserKey();//RoomUserKey 세팅
@@ -177,19 +177,18 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 				}
 			}
 		}
-		else if (recvMsg[0] == 'P' && ClientMode == 3)
+		else if (recvMsg[0] == 'P' && tData.user->IsCurrentClientMode(tData.user->GAMEPLAY))
 		{//P유저키_방향키
 			tData.gPlay->RecvPlayerPosition(recvMsg + 1);
 		}
-		else if (recvMsg[0] == 'Q' && ClientMode == 3)
+		else if (recvMsg[0] == 'Q' && tData.user->IsCurrentClientMode(tData.user->GAMEPLAY))
 		{//"Q유저키" 이게 세번(클라당 한번씩) 오면 게임 종료
 			int iUserKey;
 			iUserKey = atoi(recvMsg + 1);
 			tData.user->wData.Rating[iUserKey-1] = ++tData.user->wData.EndUserNum;
 			if (tData.user->wData.EndUserNum == tData.user->wData.ConnectUserNum)
 			{
-				ClientMode = 2;
-				tData.user->setClientMode(2);
+				tData.user->setClientMode(tData.user->WAIT_ROOM);
 				
 
 			}

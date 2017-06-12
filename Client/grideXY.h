@@ -8,7 +8,7 @@ using namespace std;
 
 
 /*		key			*/
-/*
+
 #define UP 0x48//72
 #define DOWN 0x50 //80
 #define LEFT 0x4b // 75
@@ -16,7 +16,7 @@ using namespace std;
 #define BACK_SPACE 0x08
 #define SPACE 0x20 //32
 #define ENTER 0x0d //13
-*/
+
 enum KeyType
 {
 	NONE = 0,
@@ -32,7 +32,7 @@ enum KeyType
 class grideXY
 {
 public:
-	KeyType GetInputKeyType(int inputKey);
+//	KeyType GetInputKeyType(int inputKey);
 protected:
 	int x, y;
 	char key;
@@ -49,6 +49,6 @@ protected:
 	int getKeyDirectionCheck();
 	//	int keyboardCheck(const int key, int * loginArrNum, LOGIN_INFO *login_info);
 
-	void DrawXY(int x, int y, char text);
+	void DrawXY(int x, int y, char *text);
 };
 

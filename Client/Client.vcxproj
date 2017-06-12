@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConnectToServer.h" />
+    <ClInclude Include="GameManager.h" />
     <ClInclude Include="GamePlayClass.h" />
     <ClInclude Include="GamePlayInfo.h" />
     <ClInclude Include="grideXY.h" />
@@ -160,6 +161,7 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ConnectToServer.cpp" />
+    <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GamePlayClass.cpp" />
     <ClCompile Include="GamePlayInfo.cpp" />
     <ClCompile Include="grideXY.cpp" />

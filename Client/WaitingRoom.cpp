@@ -61,7 +61,7 @@ int WaitingRoom::WatingRoomMain()
 	char inputstr[MAXCHAR];
 	int inputstrSz = 0;
 	memset(inputstr, 0, sizeof(inputstr));
-	while ((user->getClientMode() != 3))
+	while (!(user->IsCurrentClientMode(user->GameState::GAMEPLAY)))//(user->getClientMode() != 3))
 	{
 		key = getKeyDirectionCheck();
 		WRinfo.SetWaitingRoomFlag(key);//왼쪽 오른쪽 구분(메뉴선택, 채팅)
