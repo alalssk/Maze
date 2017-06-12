@@ -52,9 +52,9 @@ class ServerClass
 		SOCKET hClntSock[3];
 		int UserCount;//이 방에 접속중인 user수
 		int gameID; //playgame에만 씀
+
 	}ChatRoom, *LPChatRoom;
 
-	static int ChatRoomCount;
 	typedef struct		//iocp handle +@
 	{
 		//LPPER_IO_DATA ioInfo;

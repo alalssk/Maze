@@ -7,6 +7,7 @@
 #define BUF_SIZE 1024
 class Lobby :protected grideXY
 {
+private:
 	int key;//key 입력관련(방향키 등)
 	LobbyInfo Linfo;
 	SOCKET sock;

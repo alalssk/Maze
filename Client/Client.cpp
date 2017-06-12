@@ -14,6 +14,15 @@
 #define LOGOUT_CODE 4
 #define EXIT_CODE 2
 
+enum GameState
+{
+	LOGIN = 0,
+	LOBBY,
+	WAIT_ROOM,
+	GAMEPLAY,
+	GAMERESULT,
+};
+
 int main()
 {
 	LoginMain lmain;
@@ -61,12 +70,12 @@ int main()
 				switch (Lobby.LobbyMain())
 				{
 				case CREATE_ROOM:
-
+					//Get Set Is From Add Append Remove Initialize Finalize Begin End Empty
 					//rThre.tData.wRoom.WatingRoomMain();
-					while ((user.getClientMode() >= 2))
+					while (/*user.IsCurrentClientMode() ||*/ (user.getClientMode() >= GameState::WAIT_ROOM))
 					{
 						wRoom.WatingRoomMain();
-						if (user.getClientMode() == 3)
+						if (user.getClientMode() == 3)// user.IsCurrentClientMode(GameState::GamePlay)
 						{
 							gPlay.mazeGameMain();
 							rThre.ClientMode = 2; user.setClientMode(2);

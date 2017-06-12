@@ -19,9 +19,6 @@ class UserInfo
 
 
 	bool RoomState;//방없으면 false
-
-
-
 public:
 	UserInfo();
 	~UserInfo();
@@ -51,12 +48,29 @@ public:
 		int winCount[3];
 		int Rating[3];
 		int EndUserNum;
-		int x[3], y[3];
 		int ConnectUserNum;
+		//void SetPosition(input key);
+		void SetPositionX(int _x, int userNum)
+		{ 
+			/*
+			if (userNum <= MAX_USERNUM)
+			{
+				x[userNum] = _x;
+			}
+			else
+			{
+				LOG("error RoomData Set Position - over Max UserNum")
+			}*/
+		}
+		void SetPositionY(int _y, int userNum) { y[userNum] = _y; }
+	private:
+		// UserNuM
+		int x[3], y[3];
 	}WaitingRoom_Data;
-	WaitingRoom_Data wData;
+	
 	void initUserXY();
 	int GetRoomUserKey();
 	void ExitWaitingRoom();
 
+	WaitingRoom_Data wData;
 };

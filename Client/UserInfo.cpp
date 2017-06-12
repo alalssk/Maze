@@ -2,7 +2,8 @@
 
 
 
-UserInfo::UserInfo() :RoomState(false)
+UserInfo::UserInfo() 
+	:RoomState(false)
 {
 
 }
@@ -13,6 +14,7 @@ UserInfo::~UserInfo()
 }
 void UserInfo::initUserXY()
 {
+
 	wData.x[0] = 2;
 	wData.y[0] = 2;
 	wData.x[1] = 2 + 59;
@@ -173,3 +175,8 @@ int UserInfo::GetRoomUserKey()
 {
 	return this->RoomUserKey;
 }
+//
+//bool UserInfo::IsClientMode(GameState gamteState)
+//{
+//
+//}

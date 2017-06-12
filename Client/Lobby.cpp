@@ -120,7 +120,6 @@ const int Lobby::LobbyMain()
 
 				if (req_EnterWaitingRoom(iRoomNum))//방입장성공
 				{
-
 					return 3;
 				}
 				else
@@ -140,6 +139,7 @@ const int Lobby::LobbyMain()
 			}
 			else
 			{
+				// RoomExit();
 				Linfo.SetLobbyListPointNumber(key);
 				initRoomListCheck();
 				PrintWaitingRoomList();
@@ -148,16 +148,8 @@ const int Lobby::LobbyMain()
 				AllClearPrintLobbyTxtBox();
 				PrintLobbyTxt();
 			}
-
-
-
 		}
-
-
-
-
 	}
-
 }
 void Lobby::PrintLobbyListBox()
 {

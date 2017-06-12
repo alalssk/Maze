@@ -2,7 +2,6 @@
 int ServerClass::TotalConnectedClientCount = 0;
 int ServerClass::TotalCreateRoomCount = 0;
 bool ServerClass::ExitFlag = false;
-int ServerClass::ChatRoomCount = 0;
 LogClass ServerClass::Chatlog;
 LogClass ServerClass::DBLog;
 ServerDB ServerClass::sDB;
@@ -129,7 +128,6 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 }
 bool ServerClass::Create_IOCP_ThreadPool()
 {
-
 	shareData->hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 	if (shareData->hComPort == INVALID_HANDLE_VALUE)
 	{
@@ -170,9 +168,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			(LPOVERLAPPED*)&ioInfo,
 			INFINITE
 			);//errorㅊ리 꼭 해줘야함 
-		if (bGQCS)//gqcs 성공
+		if (bGQCS && ioInfo)//gqcs 성공
 		{
-
 			if (ioInfo->Mode == FIRST_READ)//ID_PASS 입력된걸 DB처리
 			{
 				char first_send[5] = "";
@@ -219,6 +216,26 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			}
 			else if (ioInfo->Mode == READ)
 			{
+				//GameState InfoState = GetGameStateFromioInfo(ioInfo);
+				//if (GameState::CreateRoom == InfoState)
+				//{
+				//	CreateRoom();
+				//}
+				//else if (GameState::JoinRoom == InfoState)
+				//{
+				//	JoinRoom();
+				//}
+				//else if (GameState::StartRoom == InfoState)
+				//{
+				//	StartRoom();
+				//}
+				//else if (GameState::EndRoom == InfoState)
+				//{
+				//	EndRoom();
+				//}
+
+
+
 				if (ioInfo->buffer[0] == '@')//방생성(@R), 방입장(@J)-MyRoom이 0인 경우만, 방 나가기(@E)-MyRoom이 0이 아닌 경우만
 				{
 					if (ioInfo->buffer[1] == 'R')					//****** 방 생성 요청 ******
@@ -236,8 +253,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 							cout << "방 생성 실패 -> " << sock << endl;
 							send(sock, "@R0", 3, 0);
 						}
-
-
 					}
 					else if (ioInfo->buffer[1] == 'r')				//****** 방리스트 요청 ******
 					{
@@ -1055,3 +1070,15 @@ const bool ServerClass::PlusWinCount(LPShared_DATA lpComp, SOCKET sock)
 	}
 	return false;
 }
+
+/*
+GetGameStateFromioInfo
+{
+	// / 
+
+	// R
+
+	// @C
+
+}
+*/

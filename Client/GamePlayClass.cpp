@@ -61,7 +61,8 @@ int GamePlayClass::mazeGameMain()
 
 	gotoxy(1, 1);
 	info.grideMap();
-	gotoxy(user->wData.x[0], user->wData.y[0]); cout << '*';
+	gotoxy(user->wData.x[0], user->wData.y[0]); 
+	cout << '*';
 	gotoxy(user->wData.x[1], user->wData.y[1]); cout << '*';
 	gotoxy(user->wData.x[2], user->wData.y[2]); cout << '*';
 	while (1)
@@ -184,6 +185,7 @@ void GamePlayClass::EndingSubLoop(int a, char c)//ENDING
 }
 bool GamePlayClass::finalPoint()
 {
+	//info.GetGameMapValue(user) == 'F'
 	if (info.gameMap[user->wData.y[MyKey-1] - 1][user->wData.x[MyKey-1] - 1] == 'F')
 	{
 		return TRUE;
@@ -224,31 +226,25 @@ void GamePlayClass::RecvPlayerPosition(char* input)
 	UserKey = atoi(tmp);
 	tmp = strtok(NULL, "");
 	InputKey = atoi(tmp);
-
+	DrawXY(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1], ' ');
 	switch (InputKey)
 	{
 	case UP:
-
-		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
+		//user->wData.SetPosition(InputKey);
 		user->wData.y[UserKey - 1] -= 1;
 		break;
 	case LEFT:
-
-		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.x[UserKey - 1] -= 1;
 		break;
 	case RIGHT:
-
-		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.x[UserKey - 1] += 1;
 		break;
 	case DOWN:
-
-		gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << ' ';
 		user->wData.y[UserKey - 1] += 1;
 		break;
 	}
-	gotoxy(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1]); cout << '*';
+
+	DrawXY(user->wData.x[UserKey - 1], user->wData.y[UserKey - 1], '*');
 }
 
 int GamePlayClass::GetRandomKey()
