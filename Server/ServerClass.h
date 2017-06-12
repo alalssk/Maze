@@ -22,7 +22,23 @@ using namespace std;
 #define MAX_THR_NUM 3
 #define MAX_NAME_SIZE 20
 #define MAX_CHATROOM_SIZE 255
-
+#define MAX_USERNUM 3
+enum PacketType
+{
+	REQUEST_CREATE_ROOM=0,
+	REQUEST_ROOM_LIST,
+	REQUEST_JOIN_ROOM,
+	REQUEST_EXIT_ROOM,
+	REQUEST_LOGOUT,
+	REQUEST_GAME_EXIT,
+	ROOM_CHAT,
+	REQUEST_START_GAME,
+	REQUEST_READY_GAME,
+	MOVE,
+	USER_GAME_FINISH,
+	GAME_OVER,
+	NONE
+};
 class ServerClass
 {
 	typedef struct    // socket info
@@ -47,9 +63,9 @@ class ServerClass
 	{
 		int ChatRoomNum;//방 번호(고유)
 		char chatRoomName[MAX_CHATROOM_SIZE];
-		char ClientsID[3][MAX_NAME_SIZE];
-		bool UserState[3];
-		SOCKET hClntSock[3];
+		char ClientsID[MAX_USERNUM][MAX_NAME_SIZE];
+		bool UserState[MAX_USERNUM];
+		SOCKET hClntSock[MAX_USERNUM];
 		int UserCount;//이 방에 접속중인 user수
 		int gameID; //playgame에만 씀
 
@@ -101,6 +117,7 @@ class ServerClass
 	static CRITICAL_SECTION cs;
 	//	void ErrorHandling(const char *message);
 
+	static PacketType GetPacketTypeFromClient(char* buffer);
 
 public:
 	static LogClass Chatlog;

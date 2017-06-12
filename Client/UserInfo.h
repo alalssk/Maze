@@ -7,6 +7,14 @@
 #define USER_PASS_SIZE 20
 #define MAX_USERNUM 3
 /*User Infomation*/
+enum GameState
+{
+	LOGIN = 0,
+	LOBBY,
+	WAIT_ROOM,
+	GAMEPLAY,
+	GAMERESULT,
+};
 class UserInfo
 {
 	char id[USER_ID_SIZE];
@@ -15,22 +23,12 @@ class UserInfo
 	int WinCount;
 	int RoomUserKey;//1~3 1이면 방장
 	SOCKET sock;
-//	int ClientMode;//login(0), Lobby(1), WaitingRoom(2), PlayGame(3)
-
-
 
 	bool RoomState;//방없으면 false
 public:
 	UserInfo();
 	~UserInfo();
-	enum GameState
-	{
-		LOGIN = 0,
-		LOBBY,
-		WAIT_ROOM,
-		GAMEPLAY,
-		GAMERESULT,
-	};
+
 	void initUserInfoData();
 	bool setID(char*);
 	char* getID();

@@ -216,3 +216,6 @@
 		- 방장이 아닌 다른 클라에서 WRinfo의 WaitingRoomTxtNum이 2인상태로 키를 누르기 때문에 종료요청을 보내게됨.
 		- 떄문에 Recv쓰레드에서 게임요청 패킷을 서버로 부터 받으면 tData.wRoom->initWaitingRoom(); 를 해주고 초기화함. 
 	>> 일단 게임종료시 디비에 END써주는거까지 해놨음. 이제 wincount, playcount 만 하면댐
+
+	0612
+	***** t13일 새벽 1시에 입력시간이 12일 15시 .... 이라고 입력됨 왜그럴까

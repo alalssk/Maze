@@ -25,7 +25,6 @@ void GameManager::initGame()
 
 bool GameManager::RunGame()
 {
-
 	while (!rThre.ExitFlag)
 	{
 		lmain.ConnectServer();
@@ -35,13 +34,12 @@ bool GameManager::RunGame()
 		if (code == EXIT_CODE)//0 접속종료, 1 접속성공
 		{
 			return 0;
-
 		}
 		else if (code == CONNECTION_CODE)
 		{
 			rThre.LogoutFlag = false;
 			rThre.StartThread();
-			user.setClientMode(user.GameState::LOBBY);
+			user.setClientMode(GameState::LOBBY);
 			while (!rThre.ExitFlag && !rThre.LogoutFlag)
 			{
 				/*
@@ -55,27 +53,27 @@ bool GameManager::RunGame()
 				case CREATE_ROOM:
 					//Get Set Is From Add Append Remove Initialize Finalize Begin End Empty
 					//rThre.tData.wRoom.WatingRoomMain();
-					while (	user.IsCurrentClientMode(user.GameState::WAIT_ROOM) || 
-							user.IsCurrentClientMode(user.GameState::GAMEPLAY))
+					while (	user.IsCurrentClientMode(GameState::WAIT_ROOM) || 
+							user.IsCurrentClientMode(GameState::GAMEPLAY))
 					{
 						wRoom.WatingRoomMain();
-						if (user.IsCurrentClientMode(user.GameState::GAMEPLAY))
+						if (user.IsCurrentClientMode(GameState::GAMEPLAY))
 						{
 							gPlay.mazeGameMain();
-							user.setClientMode(user.GameState::WAIT_ROOM);
+							user.setClientMode(GameState::WAIT_ROOM);
 						}
 						else {}
 					}
 					break;
 				case JOIN_ROOM:
-					while (	user.IsCurrentClientMode(user.GameState::WAIT_ROOM) || 
-							user.IsCurrentClientMode(user.GameState::GAMEPLAY))
+					while (	user.IsCurrentClientMode(GameState::WAIT_ROOM) || 
+							user.IsCurrentClientMode(GameState::GAMEPLAY))
 					{
 						wRoom.WatingRoomMain();
-						if (user.IsCurrentClientMode(user.GameState::GAMEPLAY))
+						if (user.IsCurrentClientMode(GameState::GAMEPLAY))
 						{
 							gPlay.mazeGameMain();
-							user.setClientMode(user.GameState::WAIT_ROOM);
+							user.setClientMode(GameState::WAIT_ROOM);
 						}
 						else {}
 						//게임끝났으니까 ClientMode 2로 변경
@@ -84,13 +82,14 @@ bool GameManager::RunGame()
 				case LOGOUT_CODE:
 					rThre.LogoutFlag = true;
 					rThre.threadOn = false;
-					user.setClientMode(user.GameState::LOGIN);
+					user.setClientMode(GameState::LOGIN);
 
 					//소캣 해제 필요
 					break;
 				case EXIT_CODE:
 					rThre.ExitFlag = true;
 					rThre.threadOn = false;
+					return true;
 					break;
 				}
 			}//end while

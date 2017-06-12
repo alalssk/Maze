@@ -3,11 +3,12 @@
 #include"UserInfo.h"
 #include"ConnectToServer.h"
 #include<string>
+
 /*	LoginTxtSize */
 #define X_LOGIN_TXT_SIZE 58
 #define Y_LOGIN_TXT_SIZE 18
 #define TXT_SPEED 1
-class LoginMain :protected grideXY
+class LoginMain
 {
 private:
 	char loginTitleTxtArr[Y_LOGIN_TXT_SIZE][X_LOGIN_TXT_SIZE];
@@ -22,6 +23,7 @@ public:
 private:
 	LoginMainInfo lf;
 	UserInfo *user;
+	grideXY gride;
 	int ReadLoginTitleTxt(); // 로그인화면에 출력할 택스트 파일 읽기	
 
 	void PrintLoginTitleTxt();//로그인화면에 불러온 텍스트 파일 출력
@@ -30,7 +32,6 @@ private:
 
 	void PrintLoginMainTxtList();
 	void SelectServerTxtList();
-	//////////////////완f
 
 	int KeyBoardCheck(const int key);
 	const int InputKey();

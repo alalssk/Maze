@@ -4,7 +4,7 @@
 #include<string>
 #include<vector>
 using CHAT_LOG = pair<string, string>;//name chat
-class WaitingRoom :protected grideXY
+class WaitingRoom
 {
 public:
 	static HANDLE hWaitingRoomEventForRequest;
@@ -27,7 +27,7 @@ public:
 	void initWaitingRoom();
 private:
 	bool req_ExitWaitingRoom();//@E_[¹æ¹øÈ£]_[ID]
-
+	void req_SendMsgToServer(char*);
 	void PrintUserListBox();
 	
 	void PrintButton();
@@ -35,11 +35,14 @@ private:
 	WaitingRoomInfo WRinfo;
 	SOCKET sock;
 	UserInfo *user;
+	grideXY gride;
 	vector<CHAT_LOG> ChatLog;
+
+	int key;
 	//UserInfo user;
 	
 
-	void req_SendMsgToServer(char*);
+
 
 };
 

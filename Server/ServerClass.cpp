@@ -195,9 +195,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << '[' << client_data.name << "]비번틀림" << endl;
 
 				}
-				//
-
-				//
 
 				//shareData->Clients.push_back()
 				sprintf(first_send, "@%d", DBcode);
@@ -216,119 +213,93 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			}
 			else if (ioInfo->Mode == READ)
 			{
-				//GameState InfoState = GetGameStateFromioInfo(ioInfo);
-				//if (GameState::CreateRoom == InfoState)
-				//{
-				//	CreateRoom();
-				//}
-				//else if (GameState::JoinRoom == InfoState)
-				//{
-				//	JoinRoom();
-				//}
-				//else if (GameState::StartRoom == InfoState)
-				//{
-				//	StartRoom();
-				//}
-				//else if (GameState::EndRoom == InfoState)
-				//{
-				//	EndRoom();
-				//}
 
 
+				PacketType type = GetPacketTypeFromClient(ioInfo->buffer);
 
-				if (ioInfo->buffer[0] == '@')//방생성(@R), 방입장(@J)-MyRoom이 0인 경우만, 방 나가기(@E)-MyRoom이 0이 아닌 경우만
+				if (PacketType::REQUEST_CREATE_ROOM == type)
 				{
-					if (ioInfo->buffer[1] == 'R')					//****** 방 생성 요청 ******
-					{												//방 생성 완료 후 모든 클라이언트에 새로운 방들에 대한 정보를 send함
-						if (CreateRoomFunc(shareData, sock))//방 생성
-						{//방 삭제할때도 보내줘야함
-							//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
 
-							//cout << "방 생성완료" << endl;
-							//send(sock, "@R1", 3, 0); -----> CreateRoomFunc 함수내부에서 완료패킷보냄
-							SendWaitingRoomList(shareData);
-						}
-						else
-						{
-							cout << "방 생성 실패 -> " << sock << endl;
-							send(sock, "@R0", 3, 0);
-						}
-					}
-					else if (ioInfo->buffer[1] == 'r')				//****** 방리스트 요청 ******
-					{
-						send(sock, "@r1", 3, 0);
+					if (CreateRoomFunc(shareData, sock))
+					{//방 삭제할때도 보내줘야함
+						//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
+
+						//cout << "방 생성완료" << endl;
+						//send(sock, "@R1", 3, 0); -----> CreateRoomFunc 함수내부에서 완료패킷보냄
 						SendWaitingRoomList(shareData);
 					}
-					else if (ioInfo->buffer[1] == 'J')				//****** 방 입장 요청 Join ******
-					{//@J_[방번호]
-						char *cRoomNum;
-						int iRoomNum;
-						strtok(ioInfo->buffer, "_");
-						cRoomNum = strtok(NULL, "_");
-						iRoomNum = atoi(cRoomNum);
-						cout << "방 입장 패킷 받음" << iRoomNum << endl;
-						if (JoinRoomFunc(shareData, sock, iRoomNum))
-						{//방입장성공
-							//성공한 경우는 JoinRoomFunc에서 성공패킷 send함
-							cout << "방입장성공(@J1) 보냄->" << sock << endl;
-						}
-						else
-						{//방입장 실패
-							send(sock, "@J0", 3, 0);
-							cout << "방입장실패(@J0) 보냄->" << sock << endl;
-						}
-						//func(shareData, sock, roomNum)
+					else
+					{
+						cout << "방 생성 실패 -> " << sock << endl;
+						send(sock, "@R0", 3, 0);
 					}
-					else if (ioInfo->buffer[1] == 'E')				//****** 방 나가기 요청 Exit 
-					{//@E_[방번호]_[ID]
-						cout << "방 나가기 요청 패킷 받음" << endl;
-						char *tmp;
-
-						int iRoomNum;
-						strtok(ioInfo->buffer, "_");
-						tmp = strtok(NULL, "_");
-						iRoomNum = atoi(tmp);
-						tmp = strtok(NULL, "_");
-
-						if (ExitRoomFunc(shareData, iRoomNum, tmp))
-						{
-							send(sock, "@E1", 3, 0);
-
-							cout << "방 나가기 요청 완료패킷(@E1) 보냄" << endl;
-						}
-						else
-						{
-							send(sock, "@E0", 3, 0);
-
-							cout << "방 나가기 요청 실패패킷(@E0) 보냄" << endl;
-						}
-
-
+				}
+				else if (PacketType::REQUEST_ROOM_LIST == type)
+				{
+					send(sock, "@r1", 3, 0);
+					SendWaitingRoomList(shareData);
+				}
+				else if (PacketType::REQUEST_JOIN_ROOM == type)
+				{
+					char *cRoomNum;
+					int iRoomNum;
+					strtok(ioInfo->buffer, "_");
+					cRoomNum = strtok(NULL, "_");
+					iRoomNum = atoi(cRoomNum);
+					cout << "방 입장 패킷 받음" << iRoomNum << endl;
+					if (JoinRoomFunc(shareData, sock, iRoomNum))
+					{//방입장성공
+						//성공한 경우는 JoinRoomFunc에서 성공패킷 send함
+						cout << "방입장성공(@J1) 보냄->" << sock << endl;
 					}
-					else if (ioInfo->buffer[1] == 'L')				//****** 게임 로그아웃요청 ******
-					{//
-						cout << "로그아웃 요청 패킷 받음 -> " << sock;
-						/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
-
-						send(sock, "@L1", 3, 0);
-						cout << "--->(@L1)전송 완료" << endl;
-						CloseClientSock(sock, ioInfo, shareData);
-
+					else
+					{//방입장 실패
+						send(sock, "@J0", 3, 0);
+						cout << "방입장실패(@J0) 보냄->" << sock << endl;
 					}
-					else if (ioInfo->buffer[1] == 'G')			//****** 게임종료요청 ******
-					{//
-						cout << "게임종료 요청 패킷 받음 -> " << sock;
-						/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
-						send(sock, "@G1", 3, 0);
-						cout << "--->(@G1)전송 완료" << endl;
-						CloseClientSock(sock, ioInfo, shareData);
+					//func(shareData, sock, roomNum)
+				}
+				else if (PacketType::REQUEST_EXIT_ROOM == type)
+				{
+					cout << "방 나가기 요청 패킷 받음" << endl;
+					char *tmp;
+
+					int iRoomNum;
+					strtok(ioInfo->buffer, "_");
+					tmp = strtok(NULL, "_");
+					iRoomNum = atoi(tmp);
+					tmp = strtok(NULL, "_");
+
+					if (ExitRoomFunc(shareData, iRoomNum, tmp))
+					{
+						send(sock, "@E1", 3, 0);
+						cout << "방 나가기 요청 완료패킷(@E1) 보냄" << endl;
 					}
-				}//end @
-				else if (ioInfo->buffer[0] == '/')
-				{	// recv " /[방번호]_[Id]_[내용] "
-					//func(int 방번호, char* [ID]_[내용]) ->> 아이디랑 내용은 클라에서 나누니까 그냥 통째로 보내면 됨.
+					else
+					{
+						send(sock, "@E0", 3, 0);
+						cout << "방 나가기 요청 실패패킷(@E0) 보냄" << endl;
+					}
+				}
+				else if (PacketType::REQUEST_LOGOUT == type)
+				{
+					cout << "로그아웃 요청 패킷 받음 -> " << sock;
+					/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
 
-
+					send(sock, "@L1", 3, 0);
+					cout << "--->(@L1)전송 완료" << endl;
+					CloseClientSock(sock, ioInfo, shareData);
+				}
+				else if (PacketType::REQUEST_GAME_EXIT == type)
+				{
+					cout << "게임종료 요청 패킷 받음 -> " << sock;
+					/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
+					send(sock, "@G1", 3, 0);
+					cout << "--->(@G1)전송 완료" << endl;
+					CloseClientSock(sock, ioInfo, shareData);
+				}
+				else if (PacketType::ROOM_CHAT == type)
+				{
 					int RoomNum;
 					char *tmp;
 					tmp = strtok(ioInfo->buffer + 1, "_");
@@ -339,29 +310,24 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
 					// send " /1_ID_내용 " 여기서 1은 방번호가 아니라 send성공을 의미함
 				}
-				else if (ioInfo->buffer[0] == '$')
+				else if (PacketType::REQUEST_START_GAME == type)
 				{
-					if (ioInfo->buffer[1] == 'R')
-					{	//$R_방번호  >> 게임시작요청 임 
-						//여기서 게임플레이 리스트에 추가하면될듯.
-						SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
-						//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
-						cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
-						SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
-					}
-					else if (ioInfo->buffer[1] == 'S')
-					{	//$S[방번호]_[ID] 을 받으면
-						//$S1_[ID]를 보내야함
-						cout << '[' << sock << "]게임 준비 완료 패킷 받음 >> " << ioInfo->buffer << endl;
-						SendUserState(shareData, ioInfo->buffer + 2);
-
-
-					}
-
+					//$R_방번호  >> 게임시작요청 임 
+					//여기서 게임플레이 리스트에 추가하면될듯.
+					SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
+					//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
+					cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
+					SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
 				}
-				else if (ioInfo->buffer[0] == 'P')
-				{//=========================== P방번호_유저키_방향키ppppp
-
+				else if (PacketType::REQUEST_READY_GAME == type)
+				{
+					//$S[방번호]_[ID] 을 받으면
+					//$S1_[ID]를 보내야함
+					cout << '[' << sock << "]게임 준비 완료 패킷 받음 >> " << ioInfo->buffer << endl;
+					SendUserState(shareData, ioInfo->buffer + 2);
+				}
+				else if (PacketType::MOVE == type)
+				{
 					cout << "GamePlay 패킷 받음 >> " << ioInfo->buffer;
 					char *tmp;
 					int iRoomNum, UserKey, InputKey;
@@ -371,20 +337,19 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					UserKey = atoi(tmp);
 					tmp = strtok(NULL, "");
 					InputKey = atoi(tmp);
-					cout<< " >> [" << iRoomNum << "][" << UserKey << "][" << InputKey <<']'<< endl;
+					cout << " >> [" << iRoomNum << "][" << UserKey << "][" << InputKey << ']' << endl;
 					//func(shareData, roomNum, userKey, inputKey); >> gameplaylist 방 탐색 후 리스트안에 있는 클라들에 "유저키_인풋키" 전송
 					SendUserInputKey_GamePlay(shareData, iRoomNum, UserKey, InputKey);
 					//send >> P유저키_방향키
-
 				}
-				else if (ioInfo->buffer[0] == 'Q')
-				{//Q방번호_MyKey
+				else if (PacketType::USER_GAME_FINISH == type)
+				{
 					list<ChatRoom>::iterator iter_game;
 					int iRoomNum, Mykey;
 					char *tmp;
 					char SendMsg[20] = "";
 					int SendMsgSz = 0;
-					tmp = strtok(ioInfo->buffer+1, "_");
+					tmp = strtok(ioInfo->buffer + 1, "_");
 					iRoomNum = atoi(tmp);
 					tmp = strtok(NULL, "");
 					Mykey = atoi(tmp);
@@ -400,22 +365,21 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 							{
 								send(iter_game->hClntSock[i], SendMsg, SendMsgSz + 1, 0);
 							}
-//							iter_game = shareData->GameRoomList.erase(iter_game); //얘는 여기있으면 안댐 클라에서 따로 게임종료시 게임방뿌게라는 패킷을 보내자
+							//iter_game = shareData->GameRoomList.erase(iter_game); //얘는 여기있으면 안댐 클라에서 따로 게임종료시 게임방뿌게라는 패킷을 보내자
 							cout << SendMsg << "가 경기를 끝냈습니다" << endl;
 							break;
 						}
 						else iter_game++;
 					}
-
 				}
-				else if (ioInfo->buffer[0] == 'q')
-				{//q방번호 -> 게임이 완전히 끝난경우
+				else if (PacketType::GAME_OVER == type)
+				{
 					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
 					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
 					PlusWinCount(shareData, sock);
 					//방지우기가 완료되면 여기에 해당 패킷을 보낸 녀석의 winCount를 증가시켜줄까?
-					
 				}
+				/*지운부분*/
 				/*WSARecv*/
 				delete ioInfo;
 				ioInfo = new OVER_DATA;
@@ -655,7 +619,7 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 		{
 			if (iter_room->UserCount <= 1)
 			{//방에 나뿐이없으면 그냥 방 삭제
-				
+
 				iter_room = lpComp->ChatRoomList.erase(iter_room);
 				//방이 없어졌으니 새로운 방 정보들을 모든 클라에 send
 				iter_user->MyRoom = 0;
@@ -666,14 +630,14 @@ const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id
 			}
 			else
 			{//방에 나말고 다른사람도 있으면....그냥 나만 나가
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < MAX_USERNUM; i++)
 				{//대기방 ID리스트에서 해당ID 지우는 과정
 					if (strcmp(iter_room->ClientsID[i], id) == 0)
 					{
 						memset(iter_room->ClientsID[i], 0, sizeof(iter_room->ClientsID[i]));
-						for (int j = i; j < 3; j++)
+						for (int j = i; j < MAX_USERNUM; j++)
 						{//여기다 소캣도 추가해줘
-							if (j == 3 - 1)
+							if (j == MAX_USERNUM - 1)
 							{
 								memset(iter_room->ClientsID[j], 0, sizeof(iter_room->ClientsID[j]));
 								iter_room->hClntSock[j] = NULL;
@@ -741,7 +705,7 @@ const bool ServerClass::JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int Room
 		cout << "방을 찾지 못함" << endl;
 		return false;
 	}
-	else if (iter_room->UserCount >= 3)
+	else if (iter_room->UserCount >= MAX_USERNUM)
 	{//방을 찾았지만 꽉찬경우
 		cout << "방이 꽉참" << endl;
 		return false;
@@ -1025,7 +989,7 @@ const bool ServerClass::DeleteStartRoom(LPShared_DATA lpComp, int RoomNum)
 				sDB.PlusPlayCount(iter_game->ClientsID[i]);
 			}
 			iter_game = lpComp->GameRoomList.erase(iter_game);
-			
+
 			return true;
 		}
 		else iter_game++;
@@ -1070,15 +1034,63 @@ const bool ServerClass::PlusWinCount(LPShared_DATA lpComp, SOCKET sock)
 	}
 	return false;
 }
-
-/*
-GetGameStateFromioInfo
+PacketType ServerClass::GetPacketTypeFromClient(char * buffer)
 {
-	// / 
+	if (buffer[0] == '@')
+	{
+		switch (buffer[1])
+		{
+		case 'R':
+			return PacketType::REQUEST_CREATE_ROOM;
+			break;
+		case 'r':
+			return PacketType::REQUEST_ROOM_LIST;
+			break;
+		case 'J':
+			return PacketType::REQUEST_JOIN_ROOM;
+			break;
+		case 'E':
+			return PacketType::REQUEST_EXIT_ROOM;
+			break;
+		case 'L':
+			return PacketType::REQUEST_LOGOUT;
+			break;
+		case 'G':
+			return PacketType::REQUEST_GAME_EXIT;
+			break;
+		}
+	}
+	else if (buffer[0] == '/')
+	{
+		return PacketType::ROOM_CHAT;
+	}
+	else if (buffer[0] == '$')
+	{
+		switch (buffer[1])
+		{
+		case 'R':
+			return PacketType::REQUEST_START_GAME;
+			break;
+		case 'S':
+			return PacketType::REQUEST_READY_GAME;
+			break;
+		}
+	}
+	else
+	{
+		switch (buffer[0])
+		{
+		case 'P':
+			return PacketType::MOVE;
+			break;
+		case 'Q':
+			return PacketType::USER_GAME_FINISH;
+			break;
+		case 'q':
+			return PacketType::GAME_OVER;
+			break;
+		}
+	}
 
-	// R
-
-	// @C
-
+	return PacketType::NONE;
 }
-*/

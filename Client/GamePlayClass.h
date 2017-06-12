@@ -2,13 +2,12 @@
 #include "grideXY.h"
 #include"UserInfo.h"
 #include "GamePlayInfo.h"
-class GamePlayClass :protected 	grideXY
+class GamePlayClass
 {
-
 	GamePlayInfo info;
 	UserInfo *user;
 	int MyKey;
-
+	grideXY gride;
 	SOCKET sock;
 public:
 	GamePlayClass();

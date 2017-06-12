@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="deletePart.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServerClass.h">

@@ -33,7 +33,6 @@ class grideXY
 {
 public:
 //	KeyType GetInputKeyType(int inputKey);
-protected:
 	int x, y;
 	char key;
 	grideXY();

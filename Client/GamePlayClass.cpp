@@ -22,7 +22,7 @@ int GamePlayClass::mazeGameMain()
 	MyKey = user->GetRoomUserKey();
 	user->wData.initUserXY();
 
-	ClearXY();
+	gride.ClearXY();
 	info.ReadMap();
 
 	bool startFlag = false;
@@ -35,7 +35,7 @@ int GamePlayClass::mazeGameMain()
 	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
 	while (!startFlag)
 	{
-		ClearXY();
+		gride.ClearXY();
 
 		startFlag = true;
 		for (int i = 0; i < user->wData.ConnectUserNum; i++)
@@ -57,24 +57,24 @@ int GamePlayClass::mazeGameMain()
 
 	//ClearXY(); info.PrintThree(); Sleep(1500);
 	//ClearXY(); info.PrintTwo(); Sleep(1500);
-	ClearXY(); info.PrintOne(); Sleep(1000);
+	gride.ClearXY(); info.PrintOne(); Sleep(1000);
 
-	gotoxy(1, 1);
+	gride.gotoxy(1, 1);
 	info.grideMap();
-	DrawXY(user->wData.GetUserX(1), user->wData.GetUserY(1), "*");
-	DrawXY(user->wData.GetUserX(2), user->wData.GetUserY(2), "*");
-	DrawXY(user->wData.GetUserX(3), user->wData.GetUserY(3), "*");
+	gride.DrawXY(user->wData.GetUserX(1), user->wData.GetUserY(1), "*");
+	gride.DrawXY(user->wData.GetUserX(2), user->wData.GetUserY(2), "*");
+	gride.DrawXY(user->wData.GetUserX(3), user->wData.GetUserY(3), "*");
 
 	while (1)
 	{
 
 
-		gotoxy(1, 1);
+		gride.gotoxy(1, 1);
 		//move_arrow(getKeyDirectionCheck());//자동탐색 만들떄 getKey...함수 뺴고 자동으로 키입력하는 함수 만들면 될듯
 		//if (MyKey == 1)SendInputKey(getKeyDirectionCheck());
 		//else SendInputKey(GetRandomKey());
 
-		SendInputKey(getKeyDirectionCheck());
+		SendInputKey(gride.getKeyDirectionCheck());
 		//여기서 나의 좌표 send
 
 		if (finalPoint())//골인지점 아얘 바꿔야 한다.
@@ -89,13 +89,13 @@ int GamePlayClass::mazeGameMain()
 				for (int i = 0; i < user->wData.ConnectUserNum; i++)
 				{
 					//gotoxy(64 + 13, 20 + i); cout << "           ";
-					DrawXY(64 + 13, 20 + i, "           ");
+					gride.DrawXY(64 + 13, 20 + i, "           ");
 				}
 				for (int i = 0; i < user->wData.ConnectUserNum; i++)
 				{
 					//gotoxy(64, 20 + i); cout<< user->wData.UserName[i]; 
-					DrawXY(64, 20 + i, user->wData.UserName[i]);
-					gotoxy(64 + 13, 20 + i); 
+					gride.DrawXY(64, 20 + i, user->wData.UserName[i]);
+					gride.gotoxy(64 + 13, 20 + i);
 					if (user->wData.Rating[i] == 0)
 						cout << ">>진행중"; 
 					else cout << user->wData.Rating[i] << "   등";
@@ -110,7 +110,7 @@ int GamePlayClass::mazeGameMain()
 				send(sock, SendMsg, strlen(SendMsg) + 1, 0);
 			}
 			/*클라초기화*/
-			ClearXY();
+			gride.ClearXY();
 			user->wData.initUserXY();
 			for (int i = 0; i < user->wData.ConnectUserNum; i++)
 			{
@@ -128,19 +128,17 @@ int GamePlayClass::mazeGameMain()
 
 void GamePlayClass::initPrint()
 {
-	gotoxy(64, 20);
-	cout << "           ";
+	gride.DrawXY(64, 20, "           ");
 }
 void GamePlayClass::movePrint()
 {
-	gotoxy(64, 20);
-	cout << " 벽입니다 ";
+	gride.DrawXY(64, 20, " 벽입니다 ");
 }
 void GamePlayClass::Ending()
 {
 	string cong = "축하합니다!!!";
 	string end_comment = "게임을 종료 합니다!!!";
-	gotoxy(X_MAX / 2 - cong.size() / 2 - 1, Y_MAX / 2), cout << cong;
+	gride.gotoxy(X_MAX / 2 - cong.size() / 2 - 1, Y_MAX / 2), cout << cong;
 	for (int i = 1; i < Y_MAX / 2 + 1; i++)
 	{
 		EndingSubLoop(i, '#');
@@ -151,7 +149,7 @@ void GamePlayClass::Ending()
 	{
 		if (i > 3)
 		{
-			gotoxy(X_MAX / 2 - end_comment.size() / 2 - 1, Y_MAX / 2), cout << end_comment;
+			gride.gotoxy(X_MAX / 2 - end_comment.size() / 2 - 1, Y_MAX / 2), cout << end_comment;
 		}
 		EndingSubLoop(i, ' ');
 		Sleep(100);
@@ -164,26 +162,26 @@ void GamePlayClass::EndingSubLoop(int a, char c)//ENDING
 
 	for (i = 0 + a; i < X_MAX - a; i++)
 	{
-		gotoxy(i, a), cout << c;
+		gride.gotoxy(i, a), cout << c;
 		//	Sleep(SPEED);
 	}
 
 	for (j = 0 + a; j < Y_MAX - a; j++)
 	{
-		gotoxy(i - 1, j), cout << c;
+		gride.gotoxy(i - 1, j), cout << c;
 		//		Sleep(SPEED);
 	}
 	for (; i > 0 + a; i--)
 	{
-		gotoxy(i - 1, j), cout << c;
+		gride.gotoxy(i - 1, j), cout << c;
 		//		Sleep(SPEED);
 	}
 	for (; j > 0 + a; j--)
 	{
-		gotoxy(i, j), cout << c;
+		gride.gotoxy(i, j), cout << c;
 		//		Sleep(SPEED);
 	}
-	gotoxy(45, 30);
+	gride.gotoxy(45, 30);
 }
 bool GamePlayClass::finalPoint()
 {
@@ -229,10 +227,9 @@ void GamePlayClass::RecvPlayerPosition(char* input)
 	tmp = strtok(NULL, "");
 	InputKey = atoi(tmp);
 
-	DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), " ");
+	gride.DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), " ");
 	user->wData.SetPositionXY(InputKey, UserKey);
-	DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), "*");
-
+	gride.DrawXY(user->wData.GetUserX(UserKey), user->wData.GetUserY(UserKey), "*");
 }
 
 int GamePlayClass::GetRandomKey()

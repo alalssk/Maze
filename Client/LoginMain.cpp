@@ -18,7 +18,7 @@ LoginMain::~LoginMain()
 int LoginMain::LoginMainStart()
 {
 
-	ClearXY();
+	gride.ClearXY();
 	ReadLoginTitleTxt();
 	PrintLoginTitleTxt();
 	PrintLoginMainTxtList();
@@ -27,7 +27,7 @@ int LoginMain::LoginMainStart()
 	switch (InputKey())
 	{//exit와 logout코드를 통합할 필요가 있는것 같군
 	case 0://exit
-		ClearXY();
+		gride.ClearXY();
 		//clientExit();
 		return 2;//EXIT_CODE 메인(client.cpp)에서 2임
 
@@ -85,10 +85,9 @@ void LoginMain::PrintLoginTitleTxt()
 void LoginMain::PrintStartLeft(int y, int xTxtNum)
 //y는 출력할 문자가 몇 번째 줄이냐를 알림
 {
-
 	for (int i = 0; i < 9; i++)
 	{
-		gotoxy(25, 3 + i);
+		gride.gotoxy(25, 3 + i);
 		for (int j = xTxtNum; j < X_LOGIN_TXT_SIZE + 1; j++)
 		{
 			cout << loginTitleTxtArr[y][j];
@@ -102,7 +101,7 @@ void LoginMain::PrintStartRight(int y, int xTxtNum)
 
 	for (int i = 0; i < 9; i++)
 	{
-		gotoxy(25 + X_LOGIN_TXT_SIZE - xTxtNum, 3 + i + 9);
+		gride.gotoxy(25 + X_LOGIN_TXT_SIZE - xTxtNum, 3 + i + 9);
 		for (int j = 0; j < xTxtNum; j++)
 		{
 			cout << loginTitleTxtArr[y][j];
@@ -114,34 +113,25 @@ void LoginMain::PrintStartRight(int y, int xTxtNum)
 
 void LoginMain::PrintLoginMainTxtList()
 {
-	gotoxy(36, 23);
-	cout << "1. 서버선택: " << endl;
-	cout << endl; gotoxy(36, 25);
-	cout << "2.    ID   : " << endl;
-	cout << endl; gotoxy(36, 27);
-	cout << "3. PassWord: " << endl;
-	cout << endl; gotoxy(36 + 10, 29);
-	cout << "[ 접 속 하 기 ]" << endl;
-	cout << endl; gotoxy(36 + 10, 31);
-	cout << "[ 종 료 하 기 ]" << endl;
-
+	gride.DrawXY(36, 23, "1. 서버선택: ");
+	gride.DrawXY(36, 25, "2.    ID   : ");
+	gride.DrawXY(36, 27, "3. PassWord: ");
+	gride.DrawXY(36 + 10, 29, "[ 접 속 하 기 ]");
+	gride.DrawXY(36 + 10, 31, "[ 종 료 하 기 ]");
 }
 void LoginMain::SelectServerTxtList()
 {
-	// main에 동적할당 한다음 인자로 주소를 받는 방식으로 만들어야함
-	gotoxy(54, 23);
-	if (lf.getServerNum() == 0)
+	switch (lf.getServerNum())
 	{
-		cout << "◀  서  버   1  ▶";//◀
-	}
-	else if (lf.getServerNum() == 1)
-	{
-		cout << "◀  서  버   2  ▶";
-
-	}
-	else if (lf.getServerNum() == 2)
-	{
-		cout << "◀  서  버   3  ▶";
+	case 0:
+		gride.DrawXY(54, 23, "◀  서  버   1  ▶");
+		break;
+	case 1:
+		gride.DrawXY(54, 23, "◀  서  버   2  ▶");
+		break;
+	case 2:
+		gride.DrawXY(54, 23, "◀  서  버   3  ▶");
+		break;
 	}
 }
 
@@ -150,15 +140,14 @@ const int LoginMain::InputKey()
 	int tmp;
 	while (1)
 	{
-		key = getKeyDirectionCheck();
-		tmp = KeyBoardCheck(key);//return -> 종료하기(0) 루프계속(5)  접속 성공(1)
+		gride.key = gride.getKeyDirectionCheck();
+		tmp = KeyBoardCheck(gride.key);//return -> 종료하기(0) 루프계속(5)  접속 성공(1)
 		if (tmp != 5)break; //대기방에서 로그인화면으로 돌아가기 만들자
 	}
 	return tmp;
 }
 int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5), 접속 성공(1)
 {
-
 	if (key == UP || key == DOWN)
 	{
 		UpDownCheck(key);
@@ -180,7 +169,6 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 			lf.cInputUserID(key);// ID 13개 Pass20개 이상 입력 안되게 하는 기능 추가
 			PrintUserID();
 		}
-
 	}
 	else if (lf.getLoginArrNum() == 2)
 	{
@@ -190,7 +178,6 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 			lf.cInputUserPass(key);
 			PrintUserPass();
 		}
-
 	}
 	else if (lf.getLoginArrNum() == 3) //접속하기 접속 실패시ErrorMsg출력, 성공시: return(1)
 	{
@@ -207,51 +194,18 @@ int LoginMain::KeyBoardCheck(const int key) //return -> 종료하기(0), 루프계속(5)
 			}
 			else
 			{
-				gotoxy(35, 29);
+				gride.gotoxy(35, 29);
 				cout << send_id_pass << "::";
 				Sleep(1000);
 				PrintConnectErrorMsg(0);
 				return 5;
 			}
-
-			//if (!(user.setID(lf.getUserId()) && user.setPassword(lf.getUserPass())))
-			//{
-			//	PrintConnectErrorMsg(0);
-			//	lf.initID_Pass();//비밀번호만 초기화 되게 만들자 
-			//	return 5;
-			//}
-			//else
-			//{
-			//	gotoxy(35, 29);
-			//	cout << user.conv_ID_Password()<<"::";
-			//	Sleep(1000);
-			//	//if (toServer.StartConnect(user.conv_ID_Password()))
-			//	//{
-			//	//	return 1;
-			//	//}
-			//	//else
-			//	//{
-			//	//	PrintConnectErrorMsg(0);
-			//	//	return 5;
-			//	//}
-			//		PrintConnectErrorMsg(0);
-			//		lf.initID_Pass();//비밀번호만 초기화 되게 만들자 
-			//		return 5;
-			//}
-
-
-
-
 		}
-
-
 	}
 	else if (lf.getLoginArrNum() == 4) //종료하기
 	{
 		if (key == SPACE || key == ENTER) return 0;
 	}
-
-
 	return 5;
 }
 
@@ -271,26 +225,25 @@ void LoginMain::UpDownCheck(int key)
 void LoginMain::loginTxtCheckPrint(int loginArrCode)
 {
 	initCheckPrint();
-	gotoxy(32, 23 + loginArrCode);	cout << "☞ ";
+	gride.DrawXY(32, 23 + loginArrCode, "☞ ");
 }//y 초기화 시켜줘야함 initCheckPrint()
+
 void LoginMain::initCheckPrint()
 {
 	for (int i = 0; i < 5; i++)
 	{
-		gotoxy(32, 23 + i * 2);
-		cout << "   ";
+		gride.DrawXY(32, 23 + i * 2, "   ");
 	}
-
 }
 void LoginMain::PrintUserID()
 {
-	gotoxy(36 + 13, 25);	txtLineClear();
-	gotoxy(36 + 13, 25);	cout << lf.getUserId();
+	gride.gotoxy(36 + 13, 25);	gride.txtLineClear();
+	gride.gotoxy(36 + 13, 25);	cout << lf.getUserId();
 }
 void LoginMain::PrintUserPass()
 {
-	gotoxy(36 + 13, 27);	txtLineClear();
-	gotoxy(36 + 13, 27);
+	gride.gotoxy(36 + 13, 27);	gride.txtLineClear();
+	gride.gotoxy(36 + 13, 27);
 	for (int i = 0; i < lf.getUserPassSz(); i++)
 		cout << "*";
 }
@@ -298,13 +251,15 @@ void LoginMain::PrintConnectErrorMsg(int ConnetErrorCode)//0이면 id pass, 1이면 
 {
 	if (ConnetErrorCode == 0)
 	{
-		gotoxy(35, 29);		cout << "- 중복된 ID 이거나 틀린 비밀번호 입니다 -";
+		gride.DrawXY(35, 29, "- 중복된 ID 이거나 틀린 비밀번호 입니다 -");
+		//gride.gotoxy(35, 29);		cout << "- 중복된 ID 이거나 틀린 비밀번호 입니다 -";
 	}
 	else {
-		gotoxy(36 + 6, 29);		cout << "- 서버 접속 오류 입니다 -";
+		gride.DrawXY(36 + 6, 29, "- 서버 접속 오류 입니다 -");
+		//gride.gotoxy(36 + 6, 29);		cout << "- 서버 접속 오류 입니다 -";
 	}
 	Sleep(1500);
-	gotoxy(32, 29);		txtLineClear();
+	gride.gotoxy(32, 29);		gride.txtLineClear();
 	PrintLoginMainTxtList();
 	loginTxtCheckPrint(6);
 }

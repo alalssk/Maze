@@ -5,7 +5,13 @@
 #include<Windows.h>
 #include<process.h>
 #define BUF_SIZE 1024
-class Lobby :protected grideXY
+
+#define CONNECTION_CODE 1
+#define CREATE_ROOM 0
+#define JOIN_ROOM 3
+#define LOGOUT_CODE 4
+#define EXIT_CODE 2
+class Lobby
 {
 private:
 	int key;//key 입력관련(방향키 등)
@@ -14,7 +20,7 @@ private:
 
 
 	UserInfo *user;
-
+	grideXY gride;
 	void PrintLobbyListBox();
 	void AllClearPrintLobbyTxtBox();
 	void PrintLobbyTxt();

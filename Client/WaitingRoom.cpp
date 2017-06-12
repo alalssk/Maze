@@ -11,14 +11,14 @@ WaitingRoom::~WaitingRoom()
 }
 void WaitingRoom::AllClear()
 {
-	ClearXY();
-	gotoxy(1, 1);
+	gride.ClearXY();
+	gride.gotoxy(1, 1);
 }
 void WaitingRoom::PrintStartGameMsg()
 {
-	gotoxy(12, 15); cout << "+--------------------------------------------------+";
-	gotoxy(12, 16); cout << "|           Press any key for start game           |";
-	gotoxy(12, 17); cout << "+--------------------------------------------------+";
+	gride.DrawXY(12, 15, "+--------------------------------------------------+");
+	gride.DrawXY(12, 16, "|           Press any key for start game           |");
+	gride.DrawXY(12, 17, "+--------------------------------------------------+");
 }
 void WaitingRoom::initWaitingRoom()
 {
@@ -33,37 +33,30 @@ void WaitingRoom::req_SendMsgToServer(char* msg)
 	char SendMsg[1024] = "";
 	sprintf(SendMsg, "/%d_%s_%s", user->wData.RoomNum, user->getID(), msg);
 	send(sock, SendMsg, strlen(SendMsg) + 1, 0);
-
-	//switch (WaitForSingleObject(hWaitingRoomEventForRequest, 5000))
-	//{
-	//case WAIT_TIMEOUT:
-	//	return false; break;
-	//case WAIT_OBJECT_0:
-	//	return true; break;
-	//default:
-	//	return false; break;
-	//}
 }
 int WaitingRoom::WatingRoomMain()
 {
 	hWaitingRoomEventForRequest = CreateEvent(NULL, FALSE, FALSE, NULL);
-	ClearXY();
+	gride.ClearXY();
 	Sleep(500);
 	sock = user->getSocket();
 	//user.setUserID("alalssk");/*###임시 채팅로그 만드는중*/
-	gotoxy(5, 3);	cout << " No. "; gotoxy(5 + 5, 3); cout << user->wData.RoomNum;
-	gotoxy(5 + 15, 3); cout << "Name: "; gotoxy(5 + 15 + 6, 3); cout << user->wData.RoomName;
-	GrideBox(5, 4, 3, 18);//PrintUserListBox
+	gride.DrawXY(5, 3, " No. ");
+	gride.gotoxy(5 + 5, 3); cout << user->wData.RoomNum;
+	gride.DrawXY(5 + 15, 3, "Name: ");
+	gride.gotoxy(5 + 15 + 6, 3); cout << user->wData.RoomName;
+	gride.GrideBox(5, 4, 3, 18);//PrintUserListBox
 	PrintUserList();
-	GrideBox(5, 9, 20, 18);//PrintChatBox
+	gride.GrideBox(5, 9, 20, 18);//PrintChatBox
 	//PrintChat()
 	PrintButton();
 	char inputstr[MAXCHAR];
 	int inputstrSz = 0;
 	memset(inputstr, 0, sizeof(inputstr));
-	while (!(user->IsCurrentClientMode(user->GameState::GAMEPLAY)))//(user->getClientMode() != 3))
+
+	while (!(user->IsCurrentClientMode(GameState::GAMEPLAY)))//(user->getClientMode() != 3))
 	{
-		key = getKeyDirectionCheck();
+		key = gride.getKeyDirectionCheck();
 		WRinfo.SetWaitingRoomFlag(key);//왼쪽 오른쪽 구분(메뉴선택, 채팅)
 		if (WRinfo.GetWaitingRoomFlag() == false)
 		{//메뉴선택부분
@@ -72,7 +65,6 @@ int WaitingRoom::WatingRoomMain()
 				//@E_[방번호]_[ID]
 				if (WRinfo.GetWaitingRoomTxtNum() == 2)//exit room
 				{
-
 					sprintf(inputstr, "@E_%d_%s", user->wData.RoomNum, user->getID());
 					send(sock, inputstr, strlen(inputstr) + 1, 0);
 					memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
@@ -86,7 +78,6 @@ int WaitingRoom::WatingRoomMain()
 					{
 						continue;
 					}
-
 				}
 				else if (WRinfo.GetWaitingRoomTxtNum() == 1)//게임시작버튼
 				{
@@ -97,26 +88,21 @@ int WaitingRoom::WatingRoomMain()
 
 						send(sock, StartMsg, strlen(StartMsg) + 1, 0);
 
-						key = getKeyDirectionCheck();//방장만 break나 리턴하면 다른 방장이 아닌애들이랑 다른상태가 되니까 
+						key = gride.getKeyDirectionCheck();//방장만 break나 리턴하면 다른 방장이 아닌애들이랑 다른상태가 되니까 
 					}
 					else {
 						//방장만 시작할수 있어욤 출력
 					}
 				}
-
 			}
 			else
 			{
 				WRinfo.SetWaitingRoomTxtNum(key);
-
-
 				PrintButton();
 			}
-
 		}
 		else
 		{//채팅부분 구현
-
 			if (key == ENTER)
 			{//서버연결후 고칠부분
 				//
@@ -129,20 +115,16 @@ int WaitingRoom::WatingRoomMain()
 				memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
 				//initChatListBox();//채팅창 초기화
 				//PrintChatLogList();//출력
-				gotoxy(7, 28); cout << "                                   ";
-				gotoxy(7, 28);
+				gride.DrawXY(7, 28, "                                   "); 
+				gride.gotoxy(7, 28);
 			}
 			else
 			{
 				//initChatListBox();
-				if (key != LEFT &&key != RIGHT && key != UP && key != DOWN &&key != ENTER)inputstr[inputstrSz++] = key;
-				gotoxy(7, 28); 	cout << inputstr;
+				if (key != LEFT &&key != RIGHT && key != UP && key != DOWN &&key != ENTER){ inputstr[inputstrSz++] = key; }
+				gride.DrawXY(7, 28, inputstr);
 			}
-
-
 			//채팅방 생성시 채팅출력용 스레드 만들어서 채팅list에 입력이있으면(타클라로부터(recv) 채팅출력
-
-
 		}
 	}//end while
 	return 0;
@@ -151,38 +133,33 @@ int WaitingRoom::WatingRoomMain()
 void WaitingRoom::PrintUserList()
 {
 	Sleep(500);
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < MAX_USERNUM; i++)
 	{//임시 초기화
-		gotoxy(7, 5 + i); cout << "                                         ";
+		gride.DrawXY(7, 5 + i, "                                     ");
 	}
-	for (int i = 0; i < 3; i++)//MAX user 3
+	for (int i = 0; i < MAX_USERNUM; i++)//MAX user 3
 	{
 		if (i < user->wData.ConnectUserNum)
 		{
-			gotoxy(7, 5 + i); cout << user->wData.UserName[i];
-
+			gride.DrawXY(7, 5 + i, user->wData.UserName[i]);
 		}
 		else {
-			gotoxy(7, 5 + i); cout << "          초기화              ";
+			gride.DrawXY(7, 5 + i, "                              ");
 		}
-
-
-		//	cout << "READY!!" << "  ||  " << "DIDIDIDIDIDID" << "  ||  " << 15 << endl;//state || ID || WinCount
 	}
 }
 void WaitingRoom::PrintButton()
 {
 	AllClearPrintLobbyTxtBox();
-	GrideBox(50, 4 * WRinfo.GetWaitingRoomTxtNum(), 1, 7);// 4 * ButtonNumber(1,2)
-	gotoxy(56, 5); cout << "Start !";//or Ready !!
-	gotoxy(56, 9); cout << "Exit !!";
+	gride.GrideBox(50, 4 * WRinfo.GetWaitingRoomTxtNum(), 1, 7);// 4 * ButtonNumber(1,2)
+	gride.DrawXY(56, 5, "Start !");//or Ready !!
+	gride.DrawXY(56, 9, "Exit !!");
 }
 void WaitingRoom::AllClearPrintLobbyTxtBox()
 {
 	for (int i = 0; i < 8; i++)
 	{
-		gotoxy(50, 4 + i);
-		cout << "                    ";
+		gride.DrawXY(50, 4 + i, "                    ");
 	}
 }
 bool WaitingRoom::InputChatLog(string name, string chat)
@@ -196,16 +173,14 @@ void WaitingRoom::PrintChatLogList()
 	for (int i = 1; i <= 17; i++)
 	{
 		if (ChatLog.size() < i)break;
-		gotoxy(7, 27 - i);
+		gride.gotoxy(7, 27 - i);
 		cout << ChatLog[ChatLog.size() - i].first << ": " << ChatLog[ChatLog.size() - i].second;
 	}
-
 }
 void WaitingRoom::initChatListBox()
 {
 	for (int i = 0; i < 18; i++)
 	{
-		gotoxy(7, 11 + i);
-		cout << "                                    ";
+		gride.DrawXY(7, 11 + i, "                                    ");
 	}
 }
