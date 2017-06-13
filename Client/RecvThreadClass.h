@@ -4,11 +4,14 @@
 #include"GamePlayClass.h"
 class RecvThreadClass
 {
-	HANDLE hSndThread, hRcvThread;
+private:
+
+	HANDLE hRcvThread;
 	static unsigned WINAPI RecvMsg(PVOID arg);
 	
 public:
-
+	static bool ExitFlag, LogoutFlag;
+	static bool threadOn;//임시
 	typedef struct
 	{
 		SOCKET sock;
@@ -20,10 +23,8 @@ public:
 	}ThreadData;	ThreadData tData;// RecvThread의 파라메타로 넣어줄 데이타
 	RecvThreadClass();
 	virtual ~RecvThreadClass();
-	void StartThread();
-	static bool ExitFlag, LogoutFlag;
-	static bool threadOn;//임시
 
+	void StartThread();
 	void setUserInfo(UserInfo*);
 	
 };

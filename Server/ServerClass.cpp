@@ -221,11 +221,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				{
 
 					if (CreateRoomFunc(shareData, sock))
-					{//방 삭제할때도 보내줘야함
-						//그리고 모든클라에 새로운 방정보(!"방개수"_"No.[방번호]>> [방이름]"_... send
-
-						//cout << "방 생성완료" << endl;
-						//send(sock, "@R1", 3, 0); -----> CreateRoomFunc 함수내부에서 완료패킷보냄
+					{
 						SendWaitingRoomList(shareData);
 					}
 					else
@@ -248,16 +244,14 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					iRoomNum = atoi(cRoomNum);
 					cout << "방 입장 패킷 받음" << iRoomNum << endl;
 					if (JoinRoomFunc(shareData, sock, iRoomNum))
-					{//방입장성공
-						//성공한 경우는 JoinRoomFunc에서 성공패킷 send함
+					{
 						cout << "방입장성공(@J1) 보냄->" << sock << endl;
 					}
 					else
-					{//방입장 실패
+					{
 						send(sock, "@J0", 3, 0);
 						cout << "방입장실패(@J0) 보냄->" << sock << endl;
 					}
-					//func(shareData, sock, roomNum)
 				}
 				else if (PacketType::REQUEST_EXIT_ROOM == type)
 				{
@@ -284,8 +278,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				else if (PacketType::REQUEST_LOGOUT == type)
 				{
 					cout << "로그아웃 요청 패킷 받음 -> " << sock;
-					/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
-
 					send(sock, "@L1", 3, 0);
 					cout << "--->(@L1)전송 완료" << endl;
 					CloseClientSock(sock, ioInfo, shareData);
@@ -293,7 +285,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				else if (PacketType::REQUEST_GAME_EXIT == type)
 				{
 					cout << "게임종료 요청 패킷 받음 -> " << sock;
-					/*로그아웃 처리부분 깔끔한 로그아웃과 게임종료를 위해 해주면 좋지만 일단 지금은 안함*/
 					send(sock, "@G1", 3, 0);
 					cout << "--->(@G1)전송 완료" << endl;
 					CloseClientSock(sock, ioInfo, shareData);
@@ -307,13 +298,9 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
 					tmp = strtok(NULL, "");
 					SendMsgWaitingRoomFunc(RoomNum, shareData, tmp);
-					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
-					// send " /1_ID_내용 " 여기서 1은 방번호가 아니라 send성공을 의미함
 				}
 				else if (PacketType::REQUEST_START_GAME == type)
 				{
-					//$R_방번호  >> 게임시작요청 임 
-					//여기서 게임플레이 리스트에 추가하면될듯.
 					SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
 					//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
 					cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
@@ -338,9 +325,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					tmp = strtok(NULL, "");
 					InputKey = atoi(tmp);
 					cout << " >> [" << iRoomNum << "][" << UserKey << "][" << InputKey << ']' << endl;
-					//func(shareData, roomNum, userKey, inputKey); >> gameplaylist 방 탐색 후 리스트안에 있는 클라들에 "유저키_인풋키" 전송
 					SendUserInputKey_GamePlay(shareData, iRoomNum, UserKey, InputKey);
-					//send >> P유저키_방향키
 				}
 				else if (PacketType::USER_GAME_FINISH == type)
 				{
@@ -360,12 +345,10 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					{
 						if (iter_game->ChatRoomNum == iRoomNum)
 						{
-							/////
 							for (int i = 0; i < iter_game->UserCount; i++)
 							{
 								send(iter_game->hClntSock[i], SendMsg, SendMsgSz + 1, 0);
 							}
-							//iter_game = shareData->GameRoomList.erase(iter_game); //얘는 여기있으면 안댐 클라에서 따로 게임종료시 게임방뿌게라는 패킷을 보내자
 							cout << SendMsg << "가 경기를 끝냈습니다" << endl;
 							break;
 						}
@@ -377,7 +360,6 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
 					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
 					PlusWinCount(shareData, sock);
-					//방지우기가 완료되면 여기에 해당 패킷을 보낸 녀석의 winCount를 증가시켜줄까?
 				}
 				/*지운부분*/
 				/*WSARecv*/
@@ -489,7 +471,7 @@ void ServerClass::ExitIOCP()
 {
 	ExitFlag = true;
 }
-void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA lpComp)
+bool ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA lpComp)
 {
 
 	char CloseName[MAX_NAME_SIZE];
@@ -514,33 +496,31 @@ void ServerClass::CloseClientSock(SOCKET sock, LPOVER_DATA ioInfo, LPShared_DATA
 			lpComp->Clients_Num--;
 			TotalConnectedClientCount--;
 			LeaveCriticalSection(&cs);//cs
-			break;
+
+			closesocket(sock);
+			sDB.UserConnection(CloseName, "LOGOUT");
+			sprintf(tmp, "[%s] is disconnected...\n", CloseName);
+			cout << tmp;
+			//SendMsgFunc(tmp, lpComp, strlen(tmp)); 나갔을때 메시지를 클라에 출력해주는걸 구현하기위함.
+			//puts("DisConnect Client!");
+
+			return true;
 		}
 		else
 		{
 			iter++;
 		}
 	}
-	closesocket(sock);
-
-	sprintf(tmp, "[%s] is disconnected...\n", CloseName);
-	SendMsgFunc(tmp, lpComp, strlen(tmp));
-	cout << tmp;
-	//puts("DisConnect Client!");
+	return false;
 }
 const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 {
 	ChatRoom room;
-	/*
-	*RoomName
-	*RoomNumber
-	*Client_IDs[3]
-	*UserCount --> max=3
-	*/
 	char tmpRoomName[255] = "";
 	char CreateRoomSendMsg[100] = "";
 	list<CLIENT_DATA>::iterator iter_user;
 	iter_user = lpComp->Clients.begin();
+
 	while (iter_user != lpComp->Clients.end())
 	{
 		if (iter_user->hClntSock == sock)
@@ -576,7 +556,6 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 				//============================유저리스트 전송부분============================
 				/*이부분은 클라에서 처음 방 만들때 ID등 자기 정보 방에 저장하기 떄문에 굳ㅇ ㅣ보내줄 필요없는듯 나중에 확인해보고 지우자*/
 				memset(CreateRoomSendMsg, 0, sizeof(CreateRoomSendMsg));
-				cout << "================유저리스트 전송부================" << endl;
 				cout << CreateRoomSendMsg << endl;
 				sprintf(CreateRoomSendMsg, "@U1_%s-%d", iter_user->name, iter_user->win_count);
 				cout << CreateRoomSendMsg << " >> 전송" << endl;
@@ -595,8 +574,6 @@ const bool ServerClass::CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock)
 		}
 	}
 	return false;//ID를 찾을수 없음.
-
-
 }
 const bool ServerClass::ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id)
 {//이 함수는 항상 cs안에있어야함

@@ -37,7 +37,7 @@ public:
 	char key;
 	grideXY();
 	virtual ~grideXY();
-	void gotoxy(int, int);
+	void gotoxy(int x, int y);
 	void ClearXY();//allclear
 	void ClearXY(int);//y
 	void ClearXY(int, int, int);//x,y,count

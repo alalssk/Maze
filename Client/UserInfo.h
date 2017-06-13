@@ -17,13 +17,13 @@ enum GameState
 };
 class UserInfo
 {
+private:
 	char id[USER_ID_SIZE];
 	char password[USER_PASS_SIZE];
 	char userID_Password_for_send[USER_ID_SIZE + USER_PASS_SIZE+1];
 	int WinCount;
 	int RoomUserKey;//1~3 1이면 방장
 	SOCKET sock;
-
 	bool RoomState;//방없으면 false
 public:
 	UserInfo();
@@ -38,13 +38,11 @@ public:
 	SOCKET getSocket();
 	UserInfo getUserInfoClass();
 	char* conv_ID_Password();
-//	void initUserInfo();
 	void setWaitingRoomData(char*);//ChangeRoomState();
 	void setWaitingRoomUserList(char*);
 	bool setRoomState(bool);
 	bool getRoomState();
 	void setClientMode(GameState );
-//	GameState getClientMode();
 	void setRoomUserKey();
 
 	bool IsCurrentClientMode(GameState state);
@@ -89,8 +87,7 @@ public:
 		int GetUserX(int UserKey){ return x[UserKey - 1]; }
 		int GetUserY(int UserKey){ return y[UserKey - 1]; }
 	private:
-	//	// UserNuM
-		int x[3], y[3];
+		int x[3], y[3]; //UserPos
 	}WaitingRoom_Data;
 	GameState ClientMode;
 	int GetRoomUserKey();

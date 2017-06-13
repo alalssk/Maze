@@ -8,7 +8,6 @@ WaitingRoomInfo::WaitingRoomInfo() :WaitingRoomFlag(false), WaitingRoomTxtNum(1)
 
 WaitingRoomInfo::~WaitingRoomInfo()
 {
-	Roomlist.clear();
 }
 void WaitingRoomInfo::initWaitingRoomInfo()
 {

@@ -19,16 +19,25 @@ bool ServerDB::StartDB()
 	connection = mysql_real_connect(&conn, DB_HOST, DB_USER, DB_PASS, DB_NAME, 3306, (char *)NULL, 0);
 	if (connection == NULL)
 	{
-		fprintf(stderr, "Mysql connection error : %s", mysql_error(&conn));
+		fprintf(stderr, "[DB_ERROR] Mysql connection error : %s\n", mysql_error(&conn));
 		return false;
 	}
 
 	return true;
 
 }
-
+bool ServerDB::ConnectionCheck()
+{
+	if (connection == NULL)
+	{
+		fprintf(stderr, "[DB_ERROR] Mysql connection error : %s\n", mysql_error(&conn));
+		return false;
+	}
+	else true;
+}
 bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 {
+
 	MYSQL_RES * sql_result;
 	MYSQL_ROW sql_row;
 	int query_stat;
@@ -43,10 +52,14 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 
 	char query[1024] = "";
 	sprintf(query, "select user_id, user_pass from user_tbl where user_id = '%s';", id.c_str());
-	query_stat = mysql_query(connection, query);
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query);
+	}
+	else false;
 	if (query_stat != 0)
 	{
-		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
+		fprintf(stderr, "[DB_ERROR] Mysql query error : %s\n", mysql_error(&conn));
 		return 1;
 	}
 	else{
@@ -56,6 +69,7 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 		{//ID가 DB에 없는 경우 insert
 			if (Insert_User(id, pass))
 			{
+				UserConnection(id, "NEW_ACOUNT");
 				return true;
 			}
 			else false;
@@ -67,6 +81,7 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 			{
 				//cout << "비번 같음" << endl;
 				OneIncreass_visit_count(id);
+				UserConnection(id, "LOGIN");
 				return true;
 			}
 			else {
@@ -80,28 +95,39 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 }
 bool ServerDB::Insert_User(string id, string pass)
 {
+
 	int query_stat;
-	string instrument = "INSERT INTO user_tbl (user_id, user_pass) VALUES ('" + id + "', '" + pass + "')";
+	string query = "INSERT INTO user_tbl (user_id, user_pass) VALUES ('" + id + "', '" + pass + "')";
 	//string instrument = "INSERT INTO user (id, password, connect_IP) VALUES ( '" + id + "', '" + password + "', '" + ip + "')";
 	//insert 예문: insert into user_tbl(user_id, user_pass, user_WinCount, user_PlayCount) values('[ID입력]', '[PASS입력]', 0, 0); 
-	//varchar 형은 입력할때 ''나 "" 해줘야함
-	query_stat = mysql_query(connection, instrument.c_str());
+	
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
 		cout << endl;
-		cout << instrument << endl;
+		cout << query << endl;
 		return false;
 	}
-	cout << "OK insert" << endl;
+	cout << "[DB] Insert_User function is completed" << endl;
 	return true;
 }
 bool ServerDB::OneIncreass_visit_count(string id)
 {
+
 	int query_stat;
 	char query[1024] = "";
+
 	sprintf(query, "update user_tbl set visit_count = visit_count+1 where user_id = '%s';", id.c_str());
-	query_stat = mysql_query(connection, query);
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query);
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[OneIncreass_visit_count]Mysql query error : %s\n", mysql_error(&conn));
@@ -109,6 +135,31 @@ bool ServerDB::OneIncreass_visit_count(string id)
 	}
 	return true;
 }
+bool ServerDB::UserConnection(string id, string type)
+{
+	int query_stat;
+	string query = "INSERT INTO user_connection_log_tbl (user_id, time, type) VALUES ('"
+		+ id + "', '" 
+		+ GetStringTypeTime() + "','" 
+		+ type + "')";
+
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
+	if (query_stat != 0)
+	{
+		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
+		cout << endl;
+		cout << "[DB_ERROR] UserConnect is failed : ";
+		cout << query << endl;
+		return false;
+	}
+	cout << "[DB] UserConnect function is completed" << endl;
+	return true;
+}
+
 bool ServerDB::GetUserWinCount(string id, int &win, int &play)
 {
 	MYSQL_RES * sql_result;
@@ -117,7 +168,11 @@ bool ServerDB::GetUserWinCount(string id, int &win, int &play)
 
 	char query[1024] = "";
 	sprintf(query, "select win_count, play_count from user_tbl where user_id = '%s';", id.c_str());
-	query_stat = mysql_query(connection, query);
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query);
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
@@ -143,7 +198,11 @@ int ServerDB::GetTotalCreateRoomCount()
 	int query_stat;
 
 	string query = "select max(room_id) from room_tbl;";
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
@@ -161,7 +220,7 @@ string ServerDB::GetStringTypeTime()
 {
 	char cTime[25] = "";
 	string sCreateTime;
-	GetSystemTime(&sysTime);
+	GetLocalTime(&sysTime);
 	sprintf(cTime, "%d-%d-%d %d:%d:%d", sysTime.wYear, sysTime.wMonth, sysTime.wDay, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
 	sCreateTime = cTime;
 	return sCreateTime;
@@ -174,14 +233,17 @@ bool ServerDB::CreateWaitingRoom(string RoomName, int RoomNum)//방이름, 방번호
 	_itoa(RoomNum, cRoomNum, 10);
 	sRoomNum = cRoomNum;
 
-
-	string instrument = "insert into room_tbl(room_name, create_time) VALUES ('" + RoomName + "','" + GetStringTypeTime() + "')";
-	query_stat = mysql_query(connection, instrument.c_str());
+	string query = "insert into room_tbl(room_name, create_time) VALUES ('" + RoomName + "','" + GetStringTypeTime() + "')";
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
 		cout << endl;
-		cout << instrument << endl;
+		cout << query << endl;
 		cout << "[DB] Create Room is failed" << endl;
 		return false;
 	}
@@ -197,8 +259,11 @@ bool ServerDB::DeleteWaitingRoom(int RoomNum)
 	sRoomNum = cRoomNum;
 	int query_stat;
 	string query = "update room_tbl set delete_time = '" + GetStringTypeTime() + "' where room_id = " + sRoomNum;
-
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[DELETE_ROOM]Mysql query error : %s\n", mysql_error(&conn));
@@ -215,13 +280,17 @@ bool ServerDB::JoinWaitingRoom(int iRoomNum, char *UserName)//방번호 유저이름
 	sRoomNum = cRoomNum;
 
 
-	string instrument = "insert into visit_room_tbl(room_id, user_id, visit_time) VALUES ('" + sRoomNum + "','" + UserName + "','" + GetStringTypeTime() + "')";
-	query_stat = mysql_query(connection, instrument.c_str());
+	string query = "insert into visit_room_tbl(room_id, user_id, visit_time) VALUES ('" + sRoomNum + "','" + UserName + "','" + GetStringTypeTime() + "')";
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
 		cout << endl;
-		cout << instrument << endl;
+		cout << query << endl;
 		cout << "[DB] Create Room is failed" << endl;
 		return false;
 	}
@@ -237,11 +306,15 @@ bool ServerDB::ExitWaitingRoom(int iRoomNum, char *UserName)//방번호 유저이름
 	int query_stat;
 	string query = "update visit_room_tbl set exit_time = '" + GetStringTypeTime() + "' where user_id = '" + UserName + "' and room_id = '" + sRoomNum + "'";
 	// update visit_room_tbl set exit_time ='2017-06-08 05:40:00' where user_id = 'test'and room_id = '46';
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[DELETE_ROOM]Mysql query error : %s\n", mysql_error(&conn));
-		cout <<"[DB_ERROR] ";
+		cout << "[DB_ERROR] ";
 		cout << query << endl;
 		return false;
 	}
@@ -257,12 +330,16 @@ bool ServerDB::StartPlayGame(int iRoomNum) //방번호
 	_itoa(iRoomNum, cRoomNum, 10);
 	sRoomNum = cRoomNum;
 	string query = "insert into game_tbl(room_id, start_time, state) values('" + sRoomNum + "','" + GetStringTypeTime() + "', 'PLAYING')";
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
 		cout << endl;
-		cout <<"[DB_ERROR] "<< query << endl;
+		cout << "[DB_ERROR] " << query << endl;
 		return false;
 	}
 	cout << "[DB_OK] game_tbl insert" << endl;
@@ -279,7 +356,11 @@ bool ServerDB::EndPlayGame(int gameNum)
 	int query_stat;
 	string query = "update game_tbl set end_time = '" + GetStringTypeTime() + "', state = 'END' where state = 'PLAYING' and game_id = " + sGameNum;
 	// update game_tbl set end_time = '2017-06-08 09:00:00', state = 'END' where state = 'PLAYING' and room_id = '1018';
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[DELETE_ROOM]Mysql query error : %s\n", mysql_error(&conn));
@@ -297,9 +378,13 @@ int ServerDB::GetPlayingGameID(int iRoomNum)
 	_itoa(iRoomNum, cRoomNum, 10);
 	sRoomNum = cRoomNum;
 
-	string query = "select game_id from game_tbl where room_id = '"+sRoomNum+"' and state = 'PLAYING'";
+	string query = "select game_id from game_tbl where room_id = '" + sRoomNum + "' and state = 'PLAYING'";
 	//select game_id from game_tbl where room_id = '1005' and state = 'PLAYING';
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
@@ -322,7 +407,11 @@ bool ServerDB::GamePlayUserLog(int iGameNum, char* UserName)
 	_itoa(iGameNum, cGameNum, 10);
 	sGameNum = cGameNum;
 	string query = "insert into play_log_tbl(game_id, user_id) values('" + sGameNum + "','" + UserName + "')";
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
@@ -341,7 +430,11 @@ bool ServerDB::PlusWinCount(char *UserName)
 	sUserName = UserName;
 	string query = "update user_tbl set win_count = win_count +1 where user_id = '" + sUserName + "'";
 	// update game_tbl set end_time = '2017-06-08 09:00:00', state = 'END' where state = 'PLAYING' and room_id = '1018';
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[PlusWinCount]Mysql query error : %s\n", mysql_error(&conn));
@@ -358,7 +451,11 @@ bool ServerDB::PlusPlayCount(char *UserName)
 	sUserName = UserName;
 	string query = "update user_tbl set play_count = play_count +1 where user_id = '" + sUserName + "'";
 	// update game_tbl set end_time = '2017-06-08 09:00:00', state = 'END' where state = 'PLAYING' and room_id = '1018';
-	query_stat = mysql_query(connection, query.c_str());
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[PlusWinCount]Mysql query error : %s\n", mysql_error(&conn));

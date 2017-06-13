@@ -39,10 +39,13 @@ int main()
 			exitFlag = true;
 			break;
 		case 6:
-			GetSystemTime(&sTime);
+			
+			GetLocalTime(&sTime);
 			sprintf(cTime, "%d-%d-%d %d:%d:%d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 			cout << cTime << endl;
 			//cout << sTime.wYear << '-' << sTime.wMonth << '-' << sTime.wDay << ' '<<sTime.wHour<<':'<<sTime.wMinute<<':'<<sTime.wSecond<<endl;
+			break;
+		default:
 			break;
 		}
 		

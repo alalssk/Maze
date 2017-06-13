@@ -70,7 +70,6 @@ int GamePlayClass::mazeGameMain()
 
 
 		gride.gotoxy(1, 1);
-		//move_arrow(getKeyDirectionCheck());//자동탐색 만들떄 getKey...함수 뺴고 자동으로 키입력하는 함수 만들면 될듯
 		//if (MyKey == 1)SendInputKey(getKeyDirectionCheck());
 		//else SendInputKey(GetRandomKey());
 

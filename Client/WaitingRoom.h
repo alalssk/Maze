@@ -8,13 +8,11 @@ class WaitingRoom
 {
 public:
 	static HANDLE hWaitingRoomEventForRequest;
-	//void req_GetWaitingRoomInfo();//방정보를 요청하고 응답은 recv스레드에서 받아 userInfo의 방정보에 넣는다
-	//void req_GetWaitingRoomUserInfo();
-	//void req_ChattingSendToServer(string chat);
+
 	void setUserInfo(UserInfo*);
 	WaitingRoom();
 	~WaitingRoom();
-	//int WatingRoomMain(SOCKET sock);
+
 	int WatingRoomMain();
 	void PrintUserList();//#유저리스트
 	/*chat*/
@@ -26,20 +24,20 @@ public:
 	void PrintStartGameMsg();
 	void initWaitingRoom();
 private:
-	bool req_ExitWaitingRoom();//@E_[방번호]_[ID]
-	void req_SendMsgToServer(char*);
-	void PrintUserListBox();
-	
-	void PrintButton();
-	void AllClearPrintLobbyTxtBox();
 	WaitingRoomInfo WRinfo;
 	SOCKET sock;
 	UserInfo *user;
 	grideXY gride;
 	vector<CHAT_LOG> ChatLog;
-
 	int key;
-	//UserInfo user;
+
+	bool req_ExitWaitingRoom();//@E_[방번호]_[ID]
+	void req_SendMsgToServer(char*);
+
+	void PrintUserListBox();	
+	void PrintButton();
+	void AllClearPrintLobbyTxtBox();
+
 	
 
 

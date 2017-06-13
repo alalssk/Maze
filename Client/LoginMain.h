@@ -10,20 +10,23 @@
 #define TXT_SPEED 1
 class LoginMain
 {
-private:
-	char loginTitleTxtArr[Y_LOGIN_TXT_SIZE][X_LOGIN_TXT_SIZE];
-	int loginArr[5];//loginArrCode for UpDownCheck()
+
 public:
 	LoginMain();
 	~LoginMain();
+	ConnectToServer toServer;
+
 	void ConnectServer();
 	int LoginMainStart();
 	void setUserInfo(UserInfo*);
-	ConnectToServer toServer;
+
 private:
+	char loginTitleTxtArr[Y_LOGIN_TXT_SIZE][X_LOGIN_TXT_SIZE];
+	int loginArr[5];//loginArrCode for UpDownCheck()
 	LoginMainInfo lf;
 	UserInfo *user;
 	grideXY gride;
+
 	int ReadLoginTitleTxt(); // 로그인화면에 출력할 택스트 파일 읽기	
 
 	void PrintLoginTitleTxt();//로그인화면에 불러온 텍스트 파일 출력

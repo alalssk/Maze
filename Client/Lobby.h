@@ -15,11 +15,9 @@ class Lobby
 {
 private:
 	int key;//key 입력관련(방향키 등)
-	LobbyInfo Linfo;
 	SOCKET sock;
-
-
 	UserInfo *user;
+	LobbyInfo Linfo;
 	grideXY gride;
 	void PrintLobbyListBox();
 	void AllClearPrintLobbyTxtBox();
@@ -41,8 +39,9 @@ private:
 public:
 	Lobby();
 	virtual ~Lobby();
-	void GetWaitingRoomList(char *);
 	static HANDLE hLobbyEventForRequest;
+
+	void GetWaitingRoomList(char *);
 	const int LobbyMain();
 	void setUserInfo(UserInfo *user);
 

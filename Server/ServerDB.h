@@ -32,6 +32,7 @@ public:
 	bool Check_Password(char* id_pass);
 	bool OneIncreass_visit_count(string id);
 	bool GetUserWinCount(string id, int &win, int &play);//_IN, _OUT, _OUT
+	bool UserConnection(string id, string type); // NEW_ACOUNT, LOGIN, LOGOUT
 	/*대기방관련 디비*/
 	bool CreateWaitingRoom(string, int);//방이름, 방번호
 	bool DeleteWaitingRoom(int);
@@ -48,6 +49,7 @@ public:
 private:
 	MYSQL *connection = NULL, conn;
 	string GetStringTypeTime();
+	bool ConnectionCheck();
 
 
 };
