@@ -59,7 +59,8 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 	else false;
 	if (query_stat != 0)
 	{
-		fprintf(stderr, "[DB_ERROR] Mysql query error : %s\n", mysql_error(&conn));
+		fprintf(stderr, "Mysql query error : %s\n", mysql_error(&conn));
+		cout << "[DB_ERROR] query: " << query << endl;
 		return 1;
 	}
 	else{
@@ -70,9 +71,14 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 			if (Insert_User(id, pass))
 			{
 				UserConnection(id, "NEW_ACOUNT");
+				cout << "[DB_OK] Insert is ok >> " << id << endl;
 				return true;
 			}
-			else false;
+			else
+			{
+				cout << "[DB_ERROR] Insert is failed >> " << id << endl;
+				false;
+			}
 		}
 		else
 		{//password 검사
@@ -82,9 +88,12 @@ bool ServerDB::Check_Password(char* id_pass)//"[ID]_[PASSWORD]"
 				//cout << "비번 같음" << endl;
 				OneIncreass_visit_count(id);
 				UserConnection(id, "LOGIN");
+				cout << "[DB_OK] Insert is ok >> " << id << endl;
 				return true;
 			}
-			else {
+			else 
+			{
+				cout << "[DB_ERROR] Insert is failed >> " << id << endl;
 				return false;
 			}
 		}
@@ -109,8 +118,7 @@ bool ServerDB::Insert_User(string id, string pass)
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
-		cout << endl;
-		cout << query << endl;
+		cout << "[DB_ERROR] query: " << query << endl;
 		return false;
 	}
 	cout << "[DB] Insert_User function is completed" << endl;
@@ -131,6 +139,7 @@ bool ServerDB::OneIncreass_visit_count(string id)
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "[OneIncreass_visit_count]Mysql query error : %s\n", mysql_error(&conn));
+		cout << "[DB_ERROR] query: " << query << endl;
 		return false;
 	}
 	return true;
@@ -150,10 +159,8 @@ bool ServerDB::UserConnection(string id, string type)
 	else false;
 	if (query_stat != 0)
 	{
-		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
-		cout << endl;
-		cout << "[DB_ERROR] UserConnect is failed : ";
-		cout << query << endl;
+		fprintf(stderr, "Mysql query error : %s\n", mysql_error(&conn));
+		cout << "[DB_ERROR] query: "<<query << endl;
 		return false;
 	}
 	cout << "[DB] UserConnect function is completed" << endl;
@@ -175,17 +182,17 @@ bool ServerDB::GetUserWinCount(string id, int &win, int &play)
 	else false;
 	if (query_stat != 0)
 	{
-		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
+		fprintf(stderr, "Mysql query error : %s\n", mysql_error(&conn));
+		cout << "[DB_ERROR] query: " << query << endl;
 		return 1;
 	}
 	else{
 		sql_result = mysql_store_result(connection);
 
 		sql_row = mysql_fetch_row(sql_result);
-		cout << sql_row[0] << ':' << sql_row[1] << endl;
 		win = atoi(sql_row[0]);
 		play = atoi(sql_row[1]);
-
+		cout << "[DB_OK] GetUserWinCount is OK. "  << endl;
 	}
 }
 

@@ -182,7 +182,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
 					client_data.MyRoom = 0;
-					sDB.GetUserWinCount("alalssk", client_data.win_count, client_data.play_count);
+					sDB.GetUserWinCount(client_data.name, client_data.win_count, client_data.play_count);
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;
@@ -360,6 +360,10 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
 					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
 					PlusWinCount(shareData, sock);
+				}
+				else if (PacketType::TEST_PACKET == type)
+				{
+					SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
 				}
 				/*지운부분*/
 				/*WSARecv*/
@@ -792,6 +796,7 @@ void ServerClass::SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD SnedSz)
 		send(iter->hClntSock, buf, SnedSz, 0);
 		iter++;
 	}
+	cout << "All Clients Send ok" << endl;
 }
 void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA lpComp, char* msg)
 {
@@ -1052,6 +1057,10 @@ PacketType ServerClass::GetPacketTypeFromClient(char * buffer)
 			return PacketType::REQUEST_READY_GAME;
 			break;
 		}
+	}
+	else if (buffer[0] == '*')
+	{
+		return PacketType::TEST_PACKET;
 	}
 	else
 	{

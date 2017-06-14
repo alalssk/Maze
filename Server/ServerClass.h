@@ -37,7 +37,8 @@ enum PacketType
 	MOVE,
 	USER_GAME_FINISH,
 	GAME_OVER,
-	NONE
+	NONE,
+	TEST_PACKET
 };
 class ServerClass
 {
