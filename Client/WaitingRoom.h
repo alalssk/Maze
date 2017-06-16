@@ -32,7 +32,7 @@ private:
 	int key;
 
 	bool req_ExitWaitingRoom();//@E_[¹æ¹øÈ£]_[ID]
-	void req_SendMsgToServer(char*);
+	void req_SendMsg(char*);
 
 	void PrintUserListBox();	
 	void PrintButton();

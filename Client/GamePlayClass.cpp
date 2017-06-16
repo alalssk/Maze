@@ -55,8 +55,8 @@ int GamePlayClass::mazeGameMain()
 		Sleep(1000);
 	}
 
-	//ClearXY(); info.PrintThree(); Sleep(1500);
-	//ClearXY(); info.PrintTwo(); Sleep(1500);
+	gride.ClearXY(); info.PrintThree(); Sleep(1500);
+	gride.ClearXY(); info.PrintTwo(); Sleep(1500);
 	gride.ClearXY(); info.PrintOne(); Sleep(1000);
 
 	gride.gotoxy(1, 1);

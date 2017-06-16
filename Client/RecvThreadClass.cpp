@@ -83,7 +83,7 @@ unsigned WINAPI RecvThreadClass::RecvMsg(void * arg)   // read thread main
 			}
 			else if (recvMsg[1] == 'S' && 
 				tData.user->IsCurrentClientMode(GameState::GAMEPLAY))// $S관련 패킷은 클라모드가 GamePlay(3)인 상태에만 처리한다.
-			{//$S1_[ID] 애당 아이디 게임준비상태
+			{//$S1_[ID] 해당 아이디 게임준비상태
 				if (recvMsg[2] == '1')
 				{
 					for (int i = 0; i < tData.user->wData.ConnectUserNum; i++)

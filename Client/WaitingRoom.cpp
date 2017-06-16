@@ -28,7 +28,7 @@ void WaitingRoom::setUserInfo(UserInfo *input_user)
 {
 	user = input_user;
 }
-void WaitingRoom::req_SendMsgToServer(char* msg)
+void WaitingRoom::req_SendMsg(char* msg)
 {//=================== "/[방번호]_[ID]_[내용]
 	char SendMsg[1024] = "";
 	sprintf(SendMsg, "/%d_%s_%s", user->wData.RoomNum, user->getID(), msg);
@@ -110,7 +110,7 @@ int WaitingRoom::WatingRoomMain()
 				//여기선 채팅을 버서로 보내기만하고 inputstr이랑 sz초기화해준다
 				//채팅 출력과  채팅창 초기화는 Recv스레드에서 할것임
 				//=================================
-				req_SendMsgToServer(inputstr);
+				req_SendMsg(inputstr);
 				//InputChatLog(user->getID(), inputstr);
 				memset(inputstr, 0, sizeof(inputstr)); inputstrSz = 0;
 				//initChatListBox();//채팅창 초기화
