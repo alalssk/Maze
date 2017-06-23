@@ -264,6 +264,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					iRoomNum = atoi(tmp);
 					tmp = strtok(NULL, "_");
 
+					EnterCriticalSection(&cs);
 					if (ExitRoomFunc(shareData, iRoomNum, tmp))
 					{
 						send(sock, "@E1", 3, 0);
@@ -274,6 +275,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						send(sock, "@E0", 3, 0);
 						cout << "방 나가기 요청 실패패킷(@E0) 보냄" << endl;
 					}
+					LeaveCriticalSection(&cs);
 				}
 				else if (PacketType::REQUEST_LOGOUT == type)
 				{
