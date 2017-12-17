@@ -3,6 +3,8 @@
 #include <process.h>
 #include <WinSock2.h>
 #include <Windows.h>
+//#include <stdatomic.h> //atomic 관련
+#include<atomic>
 #include<time.h>
 #include<list>
 #include<vector>
@@ -10,6 +12,7 @@
 #include "LogClass.h"//log
 #include"ServerDB.h"
 using namespace std;
+
 #define BUF_SIZE 100
 /*IOCP MODE*/
 #define READ		3
@@ -40,8 +43,11 @@ enum PacketType
 	NONE,
 	TEST_PACKET
 };
+unsigned int __stdcall AcceptThread(PVOID pServSock);
+unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);
 class ServerClass
 {
+public:
 	typedef struct    // socket info
 	{
 		SOCKET hClntSock;
@@ -84,6 +90,7 @@ class ServerClass
 		int Clients_Num;//접속중인 클라 개수
 		//SOCKET sClients[MAX_CLN_NUM];
 		DWORD recvBytes, flags;
+		ServerClass *thisServerClass;
 	} Shared_DATA, *LPShared_DATA;
 
 	LPShared_DATA shareData;
@@ -99,28 +106,29 @@ class ServerClass
 	static int TotalCreateRoomCount;
 
 	const SOCKET GetListenSock(const int Port, const int Backlog);
-	static bool CloseClientSock(SOCKET, LPOVER_DATA, LPShared_DATA);
-	static const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
-	static const bool ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id);//이 함수는 항상 cs안에있어야함
-	static const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);
-	static const bool SendNewWaitingUserList(list<ChatRoom>::iterator);
-	static void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
-	static void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
-	static bool SendWaitingRoomList(LPShared_DATA lpComp);
-	static bool SendUserState(LPShared_DATA lpComp, char *input);//[방번호]_[ID]
-	static void SendUserInputKey_GamePlay(LPShared_DATA, int, int, int);
-	static const bool SetStartRoom(LPShared_DATA lpComp, int RoomNum);
-	static const bool DeleteStartRoom(LPShared_DATA lpComp, int RoomNum);
-	static const bool PlusWinCount(LPShared_DATA lpComp, SOCKET sock);//1등인 유저의 소캣을 인자로
-	static unsigned __stdcall AcceptThread(PVOID pServSock);
+	 bool CloseClientSock(SOCKET, LPOVER_DATA, LPShared_DATA);
+	 const bool CreateRoomFunc(LPShared_DATA lpComp, SOCKET sock);
+	 const bool ExitRoomFunc(LPShared_DATA lpComp, int RoomNum, char *id);//이 함수는 항상 cs안에있어야함
+	 const bool JoinRoomFunc(LPShared_DATA lpComp, SOCKET sock, int RoomNum);
+	 const bool SendNewWaitingUserList(list<ChatRoom>::iterator);
+	 void SendMsgFunc(char* buf, LPShared_DATA lpComp, DWORD RecvSz);
+	 void ServerClass::SendMsgWaitingRoomFunc(int RoomNum, LPShared_DATA ipComp, char* msg);
+	 bool SendWaitingRoomList(LPShared_DATA lpComp);
+	 bool SendUserState(LPShared_DATA lpComp, char *input);//[방번호]_[ID]
+	 void SendUserInputKey_GamePlay(LPShared_DATA, int, int, int);
+	 const bool SetStartRoom(LPShared_DATA lpComp, int RoomNum);
+	 const bool DeleteStartRoom(LPShared_DATA lpComp, int RoomNum);
+	 const bool PlusWinCount(LPShared_DATA lpComp, SOCKET sock);//1등인 유저의 소캣을 인자로
+	 
 	bool Create_IOCP_ThreadPool();
-	static unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO);
-	static CRITICAL_SECTION cs;
+	 
+	 static CRITICAL_SECTION cs;
 	//	void ErrorHandling(const char *message);
 
-	static PacketType GetPacketTypeFromClient(char* buffer);
+	 PacketType GetPacketTypeFromClient(char* buffer);
 
 public:
+
 	static LogClass Chatlog;
 	static LogClass DBLog;
 	static ServerDB sDB;

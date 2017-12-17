@@ -7,11 +7,11 @@ class RecvThreadClass
 private:
 
 	HANDLE hRcvThread;
-	static unsigned WINAPI RecvMsg(PVOID arg);
+	 unsigned WINAPI RecvMsg(PVOID arg);
 	
 public:
-	static bool ExitFlag, LogoutFlag;
-	static bool threadOn;//임시
+	 bool ExitFlag, LogoutFlag;
+	 bool threadOn;//임시
 	typedef struct
 	{
 		SOCKET sock;

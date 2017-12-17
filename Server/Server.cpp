@@ -40,9 +40,9 @@ int main()
 			break;
 		case 6:
 			
-			GetLocalTime(&sTime);
-			sprintf(cTime, "%d-%d-%d %d:%d:%d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
-			cout << cTime << endl;
+		//	GetLocalTime(&sTime);
+		//	sprintf(cTime, "%d-%d-%d %d:%d:%d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+		//	cout << cTime << endl;
 			//cout << sTime.wYear << '-' << sTime.wMonth << '-' << sTime.wDay << ' '<<sTime.wHour<<':'<<sTime.wMinute<<':'<<sTime.wSecond<<endl;
 			break;
 		default:

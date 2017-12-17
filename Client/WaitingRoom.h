@@ -7,7 +7,7 @@ using CHAT_LOG = pair<string, string>;//name chat
 class WaitingRoom
 {
 public:
-	static HANDLE hWaitingRoomEventForRequest;
+	 HANDLE hWaitingRoomEventForRequest;
 
 	void setUserInfo(UserInfo*);
 	WaitingRoom();

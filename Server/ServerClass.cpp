@@ -12,6 +12,7 @@ ServerClass::ServerClass()
 	//memset(lpComPort, 0, sizeof(ComPort)); 왜 이렇게 초기화하면 push_back 부분에서 크래쉬가 나는지...?
 	shareData->flags = 0;
 	shareData->Clients_Num = 0;
+	shareData->thisServerClass = this;
 
 }
 
@@ -58,24 +59,24 @@ bool ServerClass::ServerClassMain()
 		cout << "Start AcceptThread." << endl;
 	}
 	InitializeCriticalSection(&cs);
-	hTheards[0] = (HANDLE)_beginthreadex(NULL, 0, &AcceptThread, (void*)shareData, 0, NULL);//Begin Accept Thread
+	hTheards[0] = (HANDLE)_beginthreadex(NULL, 0, AcceptThread, (void*)shareData, 0, NULL);//Begin Accept Thread
 	cout << "servermain ok" << endl;
 
 	return true;
 }
-unsigned ServerClass::AcceptThread(PVOID pComPort)
+unsigned int __stdcall AcceptThread(PVOID pComPort)
 {
-	LPShared_DATA lpComPort = (LPShared_DATA)pComPort;
-	CLIENT_DATA client_data;
+	ServerClass::LPShared_DATA lpComPort = (ServerClass::LPShared_DATA)pComPort;
+	ServerClass::CLIENT_DATA client_data;
 
 	int addrLen = sizeof(client_data.clntAdr);
 
-	LPOVER_DATA ioInfo;
+	ServerClass::LPOVER_DATA ioInfo;
 
-	while (!ExitFlag)
+	while (!ServerClass::ExitFlag)
 	{
 		printf("%d명 접속중....", lpComPort->Clients_Num);
-		printf("%d 번 째 클라이언트 Accept 대기중\n", TotalConnectedClientCount);
+		printf("%d 번 째 클라이언트 Accept 대기중\n", ServerClass::TotalConnectedClientCount);
 		client_data.hClntSock = accept(
 			lpComPort->hServSock,
 			(SOCKADDR*)&client_data.clntAdr,
@@ -95,7 +96,7 @@ unsigned ServerClass::AcceptThread(PVOID pComPort)
 			continue;
 		}
 
-		ioInfo = new OVER_DATA;
+		ioInfo = new ServerClass::OVER_DATA;
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		ioInfo->wsaBuf.len = BUF_SIZE;
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
@@ -141,23 +142,24 @@ bool ServerClass::Create_IOCP_ThreadPool()
 	return true;
 
 }
-unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
+unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO)
 {
 	//HANDLE hComPort = (HANDLE)pComPort;
-	LPShared_DATA shareData = (LPShared_DATA)CompletionPortIO;
-
+	ServerClass::LPShared_DATA shareData = (ServerClass::LPShared_DATA)CompletionPortIO;
+	ServerClass *sv;
+	sv = shareData->thisServerClass;
 	/*컴플리션키*/
 	SOCKET sock;
 	/*컴플리션키*/
 
 	DWORD bytesTrans;
-	LPOVER_DATA ioInfo;
+	ServerClass::LPOVER_DATA ioInfo;
 	DWORD flags = 0;
 	char SendMsg[1024];
 	char clntName[MAX_NAME_SIZE];
 	memset(SendMsg, 0, (sizeof(SendMsg)));
 	memset(clntName, 0, (sizeof(clntName)));
-	CLIENT_DATA client_data;
+	ServerClass::CLIENT_DATA client_data;
 
 	while (1)
 	{
@@ -174,20 +176,19 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			{
 				char first_send[5] = "";
 				int DBcode;
-				if (sDB.Check_Password(ioInfo->buffer))
+				if (ServerClass::sDB.Check_Password(ioInfo->buffer))
 				{
 					DBcode = 0;//접속ㅇㅋ
-					EnterCriticalSection(&cs);
-
+					EnterCriticalSection(&ServerClass::cs);
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
 					client_data.MyRoom = 0;
-					sDB.GetUserWinCount(client_data.name, client_data.win_count, client_data.play_count);
+					ServerClass::sDB.GetUserWinCount(client_data.name, client_data.win_count, client_data.play_count);
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;
-					TotalConnectedClientCount++;
-					LeaveCriticalSection(&cs);
+					ServerClass::TotalConnectedClientCount++;
+					LeaveCriticalSection(&ServerClass::cs);
 				}
 				else {
 					DBcode = 2;//비번다름코드;
@@ -206,7 +207,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				//특정 코드(방생성 방입장 종료코드 등)을 받으면 그에대한 모드 처리
 
 				/*WSARecv*/
-				ioInfo = new OVER_DATA;
+				ioInfo = new ServerClass::OVER_DATA;
 				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 				if (DBcode == 2)ioInfo->Mode = FIRST_READ; //비번다르면 다시 읽어야하니까
 				else ioInfo->Mode = READ;
@@ -215,14 +216,14 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 			{
 
 
-				PacketType type = GetPacketTypeFromClient(ioInfo->buffer);
+				PacketType type = sv->GetPacketTypeFromClient(ioInfo->buffer);
 
 				if (PacketType::REQUEST_CREATE_ROOM == type)
 				{
 
-					if (CreateRoomFunc(shareData, sock))
+					if (sv->CreateRoomFunc(shareData, sock))
 					{
-						SendWaitingRoomList(shareData);
+						sv->SendWaitingRoomList(shareData);
 					}
 					else
 					{
@@ -233,7 +234,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				else if (PacketType::REQUEST_ROOM_LIST == type)
 				{
 					send(sock, "@r1", 3, 0);
-					SendWaitingRoomList(shareData);
+					sv->SendWaitingRoomList(shareData);
 				}
 				else if (PacketType::REQUEST_JOIN_ROOM == type)
 				{
@@ -243,7 +244,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					cRoomNum = strtok(NULL, "_");
 					iRoomNum = atoi(cRoomNum);
 					cout << "방 입장 패킷 받음" << iRoomNum << endl;
-					if (JoinRoomFunc(shareData, sock, iRoomNum))
+					if (sv->JoinRoomFunc(shareData, sock, iRoomNum))
 					{
 						cout << "방입장성공(@J1) 보냄->" << sock << endl;
 					}
@@ -264,8 +265,8 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					iRoomNum = atoi(tmp);
 					tmp = strtok(NULL, "_");
 
-					EnterCriticalSection(&cs);
-					if (ExitRoomFunc(shareData, iRoomNum, tmp))
+					EnterCriticalSection(&ServerClass::cs);
+					if (sv->ExitRoomFunc(shareData, iRoomNum, tmp))
 					{
 						send(sock, "@E1", 3, 0);
 						cout << "방 나가기 요청 완료패킷(@E1) 보냄" << endl;
@@ -275,21 +276,21 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 						send(sock, "@E0", 3, 0);
 						cout << "방 나가기 요청 실패패킷(@E0) 보냄" << endl;
 					}
-					LeaveCriticalSection(&cs);
+					LeaveCriticalSection(&ServerClass::cs);
 				}
 				else if (PacketType::REQUEST_LOGOUT == type)
 				{
 					cout << "로그아웃 요청 패킷 받음 -> " << sock;
 					send(sock, "@L1", 3, 0);
 					cout << "--->(@L1)전송 완료" << endl;
-					CloseClientSock(sock, ioInfo, shareData);
+					sv->CloseClientSock(sock, ioInfo, shareData);
 				}
 				else if (PacketType::REQUEST_GAME_EXIT == type)
 				{
 					cout << "게임종료 요청 패킷 받음 -> " << sock;
 					send(sock, "@G1", 3, 0);
 					cout << "--->(@G1)전송 완료" << endl;
-					CloseClientSock(sock, ioInfo, shareData);
+					sv->CloseClientSock(sock, ioInfo, shareData);
 				}
 				else if (PacketType::ROOM_CHAT == type)
 				{
@@ -299,21 +300,21 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					RoomNum = atoi(tmp);
 					cout << "======== WaitingRoom[" << RoomNum << "]Chat Send ========" << endl;
 					tmp = strtok(NULL, "");
-					SendMsgWaitingRoomFunc(RoomNum, shareData, tmp);
+					sv->SendMsgWaitingRoomFunc(RoomNum, shareData, tmp);
 				}
 				else if (PacketType::REQUEST_START_GAME == type)
 				{
-					SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
+					sv->SetStartRoom(shareData, atoi(ioInfo->buffer + 3));
 					//클라로부터 받은 게임시작요청 $R_방번호 을 고대로 접속중인 모든 클라로 보냄
 					cout << '[' << sock << "]게임시작 패킷 받음 >> " << ioInfo->buffer << endl;
-					SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
+					sv->SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
 				}
 				else if (PacketType::REQUEST_READY_GAME == type)
 				{
 					//$S[방번호]_[ID] 을 받으면
 					//$S1_[ID]를 보내야함
 					cout << '[' << sock << "]게임 준비 완료 패킷 받음 >> " << ioInfo->buffer << endl;
-					SendUserState(shareData, ioInfo->buffer + 2);
+					sv->SendUserState(shareData, ioInfo->buffer + 2);
 				}
 				else if (PacketType::MOVE == type)
 				{
@@ -327,11 +328,11 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 					tmp = strtok(NULL, "");
 					InputKey = atoi(tmp);
 					cout << " >> [" << iRoomNum << "][" << UserKey << "][" << InputKey << ']' << endl;
-					SendUserInputKey_GamePlay(shareData, iRoomNum, UserKey, InputKey);
+					sv->SendUserInputKey_GamePlay(shareData, iRoomNum, UserKey, InputKey);
 				}
 				else if (PacketType::USER_GAME_FINISH == type)
 				{
-					list<ChatRoom>::iterator iter_game;
+					list<ServerClass::ChatRoom>::iterator iter_game;
 					int iRoomNum, Mykey;
 					char *tmp;
 					char SendMsg[20] = "";
@@ -360,17 +361,17 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				else if (PacketType::GAME_OVER == type)
 				{
 					cout << "[게임이 끝낫다는 신호] >>>" << ioInfo->buffer << endl;
-					DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
-					PlusWinCount(shareData, sock);
+					sv->DeleteStartRoom(shareData, atoi(ioInfo->buffer + 1));
+					sv->PlusWinCount(shareData, sock);
 				}
 				else if (PacketType::TEST_PACKET == type)
 				{
-					SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
+					sv->SendMsgFunc(ioInfo->buffer, shareData, strlen(ioInfo->buffer) + 1);
 				}
 				/*지운부분*/
 				/*WSARecv*/
 				delete ioInfo;
-				ioInfo = new OVER_DATA;
+				ioInfo = new ServerClass::OVER_DATA;
 				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 				ioInfo->Mode = READ;
 
@@ -402,7 +403,7 @@ unsigned  __stdcall ServerClass::IOCPWorkerThread(LPVOID CompletionPortIO)
 				{
 				case ERROR_NETNAME_DELETED:
 					cout << "소캣(" << sock << ')' << " 연결 해제됨: ";
-					CloseClientSock(sock, ioInfo, shareData);
+					sv->CloseClientSock(sock, ioInfo, shareData);
 					//delete ioInfo;
 					break;
 				default:

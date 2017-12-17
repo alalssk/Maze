@@ -208,8 +208,9 @@ int ServerDB::GetTotalCreateRoomCount()
 	if (ConnectionCheck())
 	{
 		query_stat = mysql_query(connection, query.c_str());
+		if (query_stat == NULL) return -1;
 	}
-	else false;
+	else return -1;
 	if (query_stat != 0)
 	{
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
