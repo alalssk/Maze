@@ -39,7 +39,7 @@ private:
 public:
 	Lobby();
 	virtual ~Lobby();
-	 HANDLE hLobbyEventForRequest;
+	static HANDLE hLobbyEventForRequest;
 
 	void GetWaitingRoomList(char *);
 	const int LobbyMain();

@@ -4,7 +4,7 @@ int ServerClass::TotalCreateRoomCount = 0;
 bool ServerClass::ExitFlag = false;
 LogClass ServerClass::Chatlog;
 LogClass ServerClass::DBLog;
-ServerDB ServerClass::sDB;
+//ServerDB ServerClass::sDB;
 CRITICAL_SECTION ServerClass::cs;
 ServerClass::ServerClass()
 {
@@ -148,18 +148,17 @@ unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO)
 	ServerClass::LPShared_DATA shareData = (ServerClass::LPShared_DATA)CompletionPortIO;
 	ServerClass *sv;
 	sv = shareData->thisServerClass;
-	/*컴플리션키*/
-	SOCKET sock;
-	/*컴플리션키*/
-
-	DWORD bytesTrans;
+	SOCKET sock;	
 	ServerClass::LPOVER_DATA ioInfo;
+	ServerClass::CLIENT_DATA client_data;
 	DWORD flags = 0;
+	DWORD bytesTrans;
+
 	char SendMsg[1024];
 	char clntName[MAX_NAME_SIZE];
 	memset(SendMsg, 0, (sizeof(SendMsg)));
 	memset(clntName, 0, (sizeof(clntName)));
-	ServerClass::CLIENT_DATA client_data;
+	
 
 	while (1)
 	{
@@ -176,14 +175,15 @@ unsigned  __stdcall IOCPWorkerThread(LPVOID CompletionPortIO)
 			{
 				char first_send[5] = "";
 				int DBcode;
-				if (ServerClass::sDB.Check_Password(ioInfo->buffer))
+				if (sv->sDB.Check_Password(ioInfo->buffer))//serverClass에 이 함수랑 GetUserWinCount를 넣어놔야 할듯.
 				{
 					DBcode = 0;//접속ㅇㅋ
 					EnterCriticalSection(&ServerClass::cs);
+					//client_data 는 공유영역이 아닌데 왜 cs안에다 너놨지?
 					client_data.hClntSock = sock;
 					strcpy(client_data.name, strtok(ioInfo->buffer, "_"));
 					client_data.MyRoom = 0;
-					ServerClass::sDB.GetUserWinCount(client_data.name, client_data.win_count, client_data.play_count);
+					sv->sDB.GetUserWinCount(client_data.name, client_data.win_count, client_data.play_count);
 					shareData->Clients.push_back(client_data);//list
 					shareData->Clients_Num++;
 					cout << '[' << client_data.name << ']' << client_data.hClntSock << "님이 접속함 - " << endl;

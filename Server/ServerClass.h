@@ -131,7 +131,7 @@ public:
 
 	static LogClass Chatlog;
 	static LogClass DBLog;
-	static ServerDB sDB;
+	ServerDB sDB;
 	ServerClass();
 	~ServerClass();
 	bool ServerClassMain();

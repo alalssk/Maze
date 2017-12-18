@@ -10,7 +10,7 @@ int main()
 
 	ServerClass sc;
 	SYSTEMTIME sTime;
-
+	string test_query;
 
 	sc.ServerClassMain();
 	int input;
@@ -39,7 +39,10 @@ int main()
 			exitFlag = true;
 			break;
 		case 6:
+			cout << "Insert Query: ";
 			
+			cin >> test_query;
+			sc.sDB.Qtest(test_query);
 		//	GetLocalTime(&sTime);
 		//	sprintf(cTime, "%d-%d-%d %d:%d:%d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 		//	cout << cTime << endl;
@@ -48,6 +51,7 @@ int main()
 		default:
 			break;
 		}
+		
 		
 
 	}

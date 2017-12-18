@@ -46,6 +46,9 @@ public:
 	bool PlusWinCount(char *UserName);	//유저이름, update >> user_tbl
 	bool PlusPlayCount(char * UserName);//유저이름, update >> user_tbl
 	int GetTotalCreateRoomCount();
+
+	void Qtest(string test_query);//test testtest testtesttestteset
+
 private:
 	MYSQL *connection = NULL, conn;
 	string GetStringTypeTime();

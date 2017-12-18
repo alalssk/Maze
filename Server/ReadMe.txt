@@ -1,7 +1,7 @@
 ========================================================================
     CONSOLE APPLICATION : Maze Project Server, Client
 ========================================================================
-클라 상태 플래그 :  short StateFlag = 0 //로그인화면(0), 로비(1), 대기방(2), 게임(3)
+클라 상태 플래그 :  static StateFlag = 0 //로그인화면(0), 로비(1), 대기방(2), 게임(3)
 할거
 
 ----------------------------
@@ -226,3 +226,36 @@
 	Send도 넌블락처리 해보자...
 
 	컴플리션키 포인터로 바꾸고 IP주소 ID등 참조할수있게...
+
+	1217
+	ServerClass의 private static member 함수들을 -> public 맴버 함수로 변경
+	(공유 구조체에 ServerClass* thisServerClass 추가, ServerClass 생성자에서 this 포인터 연결)
+		--> ServerClass의 동작 함수들을 private으로 감추고 싶은데 좋은 방법을 생각해보자.
+	DB객체를 static으로 두는게 맞는지 생각해보기 
+
+
+	왜 이렇게 써논거지????????
+	if (ConnectionCheck())
+	{
+		query_stat = mysql_query(connection, query.c_str());
+	}
+	else false;
+
+
+	방번호 관련해서 DB 수정 다시해야됨!!!!.
+
+
+	ALTER TABLE t2 ADD d TIMESTAMP; 로 수정하자
+	----> 시간 따로 구할 필요없이 insert 할떄마다 자동으로 시간 찍힘
+	createTime 은 타임스템프로 deleteTime는 시간 따로 구해서 대입
+
+	**테이블 수정
+	- room_tbl; 
+	modify create_time timestamp;
+
+	- user_connection_log_tbl; 
+	modify time timestamp;
+	add type char(20);
+
+	- game_tbl;
+	add state char(20)
